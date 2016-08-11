@@ -98,6 +98,8 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
     		log.log(Level.WARNING, "A table with more than one key column cannot be indexed");
 
 		log.log(Level.FINEST, insertQuery.toString());
+		
+		System.out.println(insertQuery.toString());
 
     	if (Env.getAD_Client_ID(Env.getCtx())  == 0)
     		DB.executeUpdateEx(insertQuery.toString(), trxName);
@@ -127,28 +129,102 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		
 		selectQuery.append("to_tsvector(");
 		//Columns that want to be indexed
+		MColumn column = null;
+		//TableName, List of validations after the ON clause
+		ArrayList<String> joinClauses = null; 
     	for (int i = 0; i < columns.size(); i++) {
     		int AD_Column_ID = columns.get(i);
-    		selectQuery.append("COALESCE(");
-    		selectQuery.append(MColumn.getColumnName(Env.getCtx(), AD_Column_ID));
+    		column = MColumn.get(Env.getCtx(), AD_Column_ID);
+    		String foreignTableName = column.getReferenceTableName();
     		
+    		if (foreignTableName != null) {
+    			
+    			MTable foreignTable = MTable.get(Env.getCtx(), foreignTableName);
+    			
+    			if (joinClauses == null)
+    				joinClauses = new ArrayList<>();
+    			
+    			joinClauses.add(getJoinClause(foreignTable, table, column));
+    			selectQuery.append(getForeignValues(foreignTable));
+
+    		} else {
+        		selectQuery.append("COALESCE(");
+        		selectQuery.append(table.getTableName());
+        		selectQuery.append(".");
+        		selectQuery.append(column.getColumnName());
+    		}
+
     		if (i < columns.size() -1)
     			selectQuery.append(",'') || ' ' || "); //space between words
     		else
-    			selectQuery.append(") ");
+    			selectQuery.append(",'') ");
     	}
 		selectQuery.append(") ");
 
     	selectQuery.append(" FROM ");
     	selectQuery.append(table.getTableName());
 
+    	if (joinClauses != null && joinClauses.size() > 0) {
+    		for (String joinClause : joinClauses)
+    	    	selectQuery.append(joinClause);
+    	}
+    	
     	//If System -> all clients
     	if (Env.getAD_Client_ID(Env.getCtx())  == 0)
-    		selectQuery.append(" WHERE IsActive='Y'");
+    		selectQuery.append(" WHERE " + table.getTableName() + ".IsActive='Y'");
     	else
-    		selectQuery.append(" WHERE AD_Client_ID IN (0, ?) AND IsActive='Y'");
+    		selectQuery.append(" WHERE " + table.getTableName() + ".AD_Client_ID IN (0, ?) AND " + table.getTableName() + ".IsActive='Y'");
     			
 		return selectQuery.toString();
+	}
+	
+	/**
+	 * Gets the values of the identifiers columns when a FK is selected as Index
+	 * @param tableName name of the foreign table 
+	 * @return a string containing the columns that will be used to search
+	 */
+	private String getForeignValues(MTable table) {
+		
+		String[] identifierColumns = table.getIdentifierColumns(); 
+		
+		if (identifierColumns != null && identifierColumns.length > 0) {
+			StringBuilder foreingColumns = new StringBuilder();
+			
+			for (int i = 0; i < identifierColumns.length; i++) {
+				foreingColumns.append("COALESCE(");
+				foreingColumns.append(table.getTableName());
+				foreingColumns.append(".");
+				foreingColumns.append(identifierColumns[i]);
+				
+				if (i < identifierColumns.length -1)
+					foreingColumns.append(",'') || ' ' || "); //space between words
+			}
+			
+			return foreingColumns.toString();
+		}
+		else
+			return null;
+	}
+	
+	private String getJoinClause(MTable foreignTable, MTable table, MColumn currentColumn) {
+		
+		if (foreignTable == null || table == null || currentColumn == null)
+			return null;
+		
+		StringBuilder joinClause = new StringBuilder();
+		joinClause.append(" LEFT JOIN ");
+		joinClause.append(foreignTable.getTableName());
+		joinClause.append(" ON ");
+		joinClause.append(table.getTableName());
+		joinClause.append(".");
+		joinClause.append(currentColumn.getColumnName());
+		joinClause.append(" = ");
+		joinClause.append(foreignTable.getTableName());
+		joinClause.append(".");
+		joinClause.append(foreignTable.getKeyColumns()[0]);
+		
+		return joinClause.toString();
+		
 	}
 
 	@Override
