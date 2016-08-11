@@ -22,9 +22,11 @@
 package de.bxservice.tools;
 
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
+import org.compiere.model.MClient;
 import org.compiere.model.MColumn;
 import org.compiere.model.MTable;
 import org.compiere.util.DB;
@@ -128,7 +130,8 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		selectQuery.append(", ");
 		
 		selectQuery.append("to_tsvector(");
-		
+		selectQuery.append("'" + getTSConfig() + "', "); //Language Parameter config
+
 		//Columns that want to be indexed
 		MColumn column = null;
 		//TableName, List of validations after the ON clause
@@ -229,7 +232,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 	}
 	
 	private String getTSConfig() {
-		return "";
+		return MClient.get(Env.getCtx()).getLanguage().getLocale().getDisplayLanguage();
 	}
 
 	@Override
