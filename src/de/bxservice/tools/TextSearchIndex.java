@@ -41,10 +41,11 @@ public class TextSearchIndex implements OmnisearchIndex {
 		
 		System.out.println(createStatement.toString());
 		
-		/*int no = DB.executeUpdateEx(createStatement.toString(), trxName);
+		int no = DB.executeUpdateEx(createStatement.toString(), trxName);
 		
+		System.out.println(no);
 		if (no == 1)
-			System.out.println("success");*/
+			System.out.println("success");
 	}
 
 	@Override
@@ -54,14 +55,8 @@ public class TextSearchIndex implements OmnisearchIndex {
 
 	@Override
 	public void dropIndex(String trxName) {
-		
 		String dropStatement = "DROP INDEX IF EXISTS " + INDEX_NAME;
-		
 		DB.executeUpdateEx(dropStatement, trxName);
-
-		/**
-		 * 
-		 */
 	}
 
 	@Override

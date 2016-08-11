@@ -21,12 +21,14 @@
 **********************************************************************/
 package de.bxservice.tools;
 
+import java.util.ArrayList;
+
 public interface OmnisearchDocument {
 	
 	void buildDocument(String trxName);
 	void updateDocument(String trxName);
 	void deleteDocument(String trxName);
 	void recreateDocument(String trxName);
-	void insertIntoDocument(String trxName);
+	void insertIntoDocument(String trxName, int AD_Table_ID, ArrayList<Integer> columns);
 	void deleteFromDocument(String trxName);
 }

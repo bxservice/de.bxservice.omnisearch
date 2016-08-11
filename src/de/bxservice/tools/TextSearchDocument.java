@@ -24,7 +24,15 @@ package de.bxservice.tools;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
+import org.compiere.model.MColumn;
+import org.compiere.model.MTable;
+import org.compiere.util.DB;
+import org.compiere.util.Env;
+
 public class TextSearchDocument extends AbstractOmnisearchDocument {
+	
+	private static final String   TS_TABLE_NAME = "BXS_omnSearch";
+	private static final String[] TS_COLUMNS = {"ad_client_id","ad_table_id","record_id","BXS_omnTSVector"};
 
 	@Override
 	/**
@@ -37,8 +45,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		if (indexedTables != null && indexedTables.size() > 0) {
 			System.out.println("Indexando ...");
 		    for(Entry<Integer, ArrayList<Integer>> entry: indexedTables.entrySet()) {
-		        System.out.println(entry.getKey());
-		        System.out.println(entry.getValue());
+	    		insertIntoDocument(trxName, entry.getKey(), entry.getValue());
 		    }
 		} else {
 			System.out.println("No hay nada para indexar");
@@ -54,25 +61,97 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 
 	@Override
 	public void deleteDocument(String trxName) {
-		// TODO Auto-generated method stub
-		
+		String sql = "TRUNCATE " + TS_TABLE_NAME;
+		DB.executeUpdateEx(sql, trxName);
 	}
 
 	@Override
 	public void recreateDocument(String trxName) {
-		// TODO Auto-generated method stub
-		
+		deleteDocument(trxName);
+		buildDocument(trxName);		
 	}
 
 	@Override
-	public void insertIntoDocument(String trxName) {
-		// TODO Auto-generated method stub
+	public void insertIntoDocument(String trxName, int AD_Table_ID, ArrayList<Integer> columns) {
+    	if (columns == null || columns.isEmpty())
+    		return;
+    	
+    	System.out.println("Indexing " + AD_Table_ID + " " + columns);
+    	
+    	StringBuilder insertQuery = new StringBuilder();
+    	insertQuery.append("INSERT INTO ");
+    	insertQuery.append(TS_TABLE_NAME);
+    	insertQuery.append(" (");
+    	for (String columnName : TS_COLUMNS) {
+    		insertQuery.append(columnName);
+    		insertQuery.append(",");
+    	}
+    	insertQuery.deleteCharAt(insertQuery.length() -1); //remove last comma
+    	insertQuery.append(") ");
+    	
+    	String selectQuery = getSelectQuery(AD_Table_ID, columns);
+    	
+    	if (selectQuery != null)
+    		insertQuery.append(selectQuery);
+    	else
+    		System.out.println("No se puede indexar una tabal con mas de una columna");
+
+    	System.out.println("QWUETR " + insertQuery.toString());
+    	
+    	if (Env.getAD_Client_ID(Env.getCtx())  == 0)
+    		DB.executeUpdateEx(insertQuery.toString(), trxName);
+    	else
+    		DB.executeUpdateEx(insertQuery.toString(), new Object[]{Env.getAD_Client_ID(Env.getCtx())},trxName);
+    	
+
+	}
+	
+	private String getSelectQuery(int AD_Table_ID, ArrayList<Integer> columns) {
 		
+		MTable table = MTable.get(Env.getCtx(), AD_Table_ID);
+		
+		StringBuilder selectQuery = new StringBuilder();
+		selectQuery.append("SELECT ");
+		selectQuery.append(Env.getAD_Client_ID(Env.getCtx())); //AD_Client_ID
+		selectQuery.append(", ");
+		selectQuery.append(AD_Table_ID); //AD_Table_ID
+		selectQuery.append(", ");
+				
+		if (table.getKeyColumns() != null && table.getKeyColumns().length == 1) 
+			selectQuery.append(table.getKeyColumns()[0]); //Record_ID
+		else
+			return null;
+		
+		selectQuery.append(", ");
+		
+		selectQuery.append("to_tsvector(");
+		//Columns that want to be indexed
+    	for (int i = 0; i < columns.size(); i++) {
+    		int AD_Column_ID = columns.get(i);
+    		selectQuery.append("COALESCE(");
+    		selectQuery.append(MColumn.getColumnName(Env.getCtx(), AD_Column_ID));
+    		
+    		if (i < columns.size() -1)
+    			selectQuery.append(",'') || ' ' || "); //space between words
+    		else
+    			selectQuery.append(") ");
+    	}
+		selectQuery.append(") ");
+
+    	selectQuery.append(" FROM ");
+    	selectQuery.append(table.getTableName());
+
+    	//If System -> all clients
+    	if (Env.getAD_Client_ID(Env.getCtx())  == 0)
+    		selectQuery.append(" WHERE IsActive='Y'");
+    	else
+    		selectQuery.append(" WHERE AD_Client_ID IN (0, ?) AND IsActive='Y'");
+    			
+		return selectQuery.toString();
 	}
 
 	@Override
 	public void deleteFromDocument(String trxName) {
-		// TODO Auto-generated method stub
 		
 	}
 	
