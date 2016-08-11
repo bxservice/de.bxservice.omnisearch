@@ -23,6 +23,7 @@ package de.bxservice.process;
 
 import java.util.logging.Level;
 
+import org.compiere.process.ProcessInfoParameter;
 import org.compiere.process.SvrProcess;
 
 import de.bxservice.tools.OmnisearchAbstractFactory;
@@ -30,17 +31,23 @@ import de.bxservice.tools.OmnisearchDocument;
 import de.bxservice.tools.OmnisearchFactoryProducer;
 import de.bxservice.tools.OmnisearchIndex;
 
-
-/**
- * Read if it is TS or Lucene or whatever
- * @author diego
- *
- */
 public class CreateIndexProcess extends SvrProcess {
 	
-
+	String indexType = null;
+	
 	@Override
 	protected void prepare() {
+		ProcessInfoParameter[] para = getParameter();
+		for (int i = 0; i < para.length; i++)
+		{
+			String name = para[i].getParameterName();
+			if (para[i].getParameter() == null)
+				;
+			else if (name.equals("BXS_IndexType"))
+				indexType = (String)para[i].getParameter();
+			else
+				log.log(Level.SEVERE, "Unknown Parameter: " + name);
+		}
 	}	
 
 	@Override
@@ -50,15 +57,15 @@ public class CreateIndexProcess extends SvrProcess {
 		//Creates the document
 		log.log(Level.INFO, "Creating the document");
 		OmnisearchAbstractFactory omnisearchFactory = OmnisearchFactoryProducer.getFactory(OmnisearchFactoryProducer.DOCUMENT_FACTORY);
-		OmnisearchDocument document = omnisearchFactory.getDocument("TextSearch");
+		OmnisearchDocument document = omnisearchFactory.getDocument(indexType);
 		document.buildDocument(get_TrxName());
 		
 		//Creates the index
 		log.log(Level.INFO, "Creating the index");
 		omnisearchFactory = OmnisearchFactoryProducer.getFactory(OmnisearchFactoryProducer.INDEX_FACTORY);
-		OmnisearchIndex index = omnisearchFactory.getIndex("TextSearch");
+		OmnisearchIndex index = omnisearchFactory.getIndex(indexType);
 		index.createIndex(get_TrxName());
 		
-        return null;
+        return "";
 	}
 }
