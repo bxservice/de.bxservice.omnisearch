@@ -46,14 +46,12 @@ public class CreateIndexProcess extends SvrProcess {
 	@Override
 	protected String doIt() throws Exception {
 
-		//First populate the vector -> create the index
+		//First populate the vector then create the index for faster performance
 		//Creates the document
 		log.log(Level.INFO, "Creating the document");
 		OmnisearchAbstractFactory omnisearchFactory = OmnisearchFactoryProducer.getFactory(OmnisearchFactoryProducer.DOCUMENT_FACTORY);
 		OmnisearchDocument document = omnisearchFactory.getDocument("TextSearch");
 		document.buildDocument(get_TrxName());
-		
-		
 		
 		//Creates the index
 		log.log(Level.INFO, "Creating the index");
