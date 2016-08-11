@@ -22,7 +22,6 @@
 package de.bxservice.tools;
 
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
@@ -58,7 +57,6 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 
 	@Override
 	public void updateDocument(String trxName) {
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -114,7 +112,6 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 	private String getSelectQuery(int AD_Table_ID, ArrayList<Integer> columns) {
 		
 		MTable table = MTable.get(Env.getCtx(), AD_Table_ID);
-		
 		StringBuilder selectQuery = new StringBuilder();
 		selectQuery.append("SELECT ");
 		selectQuery.append(Env.getAD_Client_ID(Env.getCtx())); //AD_Client_ID
@@ -239,6 +236,4 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 	public void deleteFromDocument(String trxName) {
 		
 	}
-	
-	
 }
