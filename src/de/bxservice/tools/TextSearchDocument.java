@@ -128,28 +128,30 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		selectQuery.append(", ");
 		
 		selectQuery.append("to_tsvector(");
+		
 		//Columns that want to be indexed
 		MColumn column = null;
 		//TableName, List of validations after the ON clause
-		ArrayList<String> joinClauses = null; 
+		ArrayList<String> joinClauses = null;
+		String mainTableAlias = "a";
     	for (int i = 0; i < columns.size(); i++) {
     		int AD_Column_ID = columns.get(i);
     		column = MColumn.get(Env.getCtx(), AD_Column_ID);
     		String foreignTableName = column.getReferenceTableName();
     		
     		if (foreignTableName != null) {
-    			
+    			String foreignAlias = "a" + i;
     			MTable foreignTable = MTable.get(Env.getCtx(), foreignTableName);
     			
     			if (joinClauses == null)
     				joinClauses = new ArrayList<>();
     			
-    			joinClauses.add(getJoinClause(foreignTable, table, column));
-    			selectQuery.append(getForeignValues(foreignTable));
+    			joinClauses.add(getJoinClause(foreignTable, mainTableAlias, foreignAlias, column));
+    			selectQuery.append(getForeignValues(foreignTable, foreignAlias));
 
     		} else {
         		selectQuery.append("COALESCE(");
-        		selectQuery.append(table.getTableName());
+        		selectQuery.append(mainTableAlias);
         		selectQuery.append(".");
         		selectQuery.append(column.getColumnName());
     		}
@@ -163,6 +165,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 
     	selectQuery.append(" FROM ");
     	selectQuery.append(table.getTableName());
+    	selectQuery.append(" " + mainTableAlias);
 
     	if (joinClauses != null && joinClauses.size() > 0) {
     		for (String joinClause : joinClauses)
@@ -171,19 +174,17 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
     	
     	//If System -> all clients
     	if (Env.getAD_Client_ID(Env.getCtx())  == 0)
-    		selectQuery.append(" WHERE " + table.getTableName() + ".IsActive='Y'");
+    		selectQuery.append(" WHERE " + mainTableAlias + ".IsActive='Y'");
     	else
-    		selectQuery.append(" WHERE " + table.getTableName() + ".AD_Client_ID IN (0, ?) AND " + table.getTableName() + ".IsActive='Y'");
+    		selectQuery.append(" WHERE " + mainTableAlias + ".AD_Client_ID IN (0, ?) AND " + mainTableAlias + ".IsActive='Y'");
     			
 		return selectQuery.toString();
 	}
 	
 	/**
 	 * Gets the values of the identifiers columns when a FK is selected as Index
-	 * @param tableName name of the foreign table 
-	 * @return a string containing the columns that will be used to search
 	 */
-	private String getForeignValues(MTable table) {
+	private String getForeignValues(MTable table, String tableAlias) {
 		
 		String[] identifierColumns = table.getIdentifierColumns(); 
 		
@@ -192,7 +193,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			
 			for (int i = 0; i < identifierColumns.length; i++) {
 				foreingColumns.append("COALESCE(");
-				foreingColumns.append(table.getTableName());
+				foreingColumns.append(tableAlias);
 				foreingColumns.append(".");
 				foreingColumns.append(identifierColumns[i]);
 				
@@ -206,25 +207,29 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			return null;
 	}
 	
-	private String getJoinClause(MTable foreignTable, MTable table, MColumn currentColumn) {
+	private String getJoinClause(MTable foreignTable, String tableAlias, String foreignTableAlias, MColumn currentColumn) {
 		
-		if (foreignTable == null || table == null || currentColumn == null)
+		if (foreignTable == null || currentColumn == null)
 			return null;
 		
 		StringBuilder joinClause = new StringBuilder();
 		joinClause.append(" LEFT JOIN ");
 		joinClause.append(foreignTable.getTableName());
+		joinClause.append(" " + foreignTableAlias);
 		joinClause.append(" ON ");
-		joinClause.append(table.getTableName());
+		joinClause.append(tableAlias);
 		joinClause.append(".");
 		joinClause.append(currentColumn.getColumnName());
 		joinClause.append(" = ");
-		joinClause.append(foreignTable.getTableName());
+		joinClause.append(foreignTableAlias);
 		joinClause.append(".");
 		joinClause.append(foreignTable.getKeyColumns()[0]);
 		
 		return joinClause.toString();
-		
+	}
+	
+	private String getTSConfig() {
+		return "";
 	}
 
 	@Override
