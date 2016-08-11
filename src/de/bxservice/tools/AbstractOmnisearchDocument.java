@@ -4,12 +4,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
 
+import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 
 public abstract class AbstractOmnisearchDocument implements OmnisearchDocument {
 
+	/**	Logger							*/
+	protected static CLogger log = CLogger.getCLogger (AbstractOmnisearchDocument.class);
+	
 	protected HashMap<Integer, ArrayList<Integer>> indexedTables;
 	
 	public HashMap<Integer, ArrayList<Integer>> getIndexedTables(boolean reQuery, String trxName, String indexColumnName) {
@@ -50,7 +55,7 @@ public abstract class AbstractOmnisearchDocument implements OmnisearchDocument {
 		}
 		catch (Exception e)
 		{
-			//log.log(Level.SEVERE, sql.toString(), e);
+			log.log(Level.SEVERE, sql.toString(), e);
 		}
 		finally
 		{

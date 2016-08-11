@@ -21,6 +21,8 @@
 **********************************************************************/
 package de.bxservice.process;
 
+import java.util.logging.Level;
+
 import org.compiere.process.SvrProcess;
 
 import de.bxservice.tools.OmnisearchAbstractFactory;
@@ -46,6 +48,7 @@ public class CreateIndexProcess extends SvrProcess {
 
 		//First populate the vector -> create the index
 		//Creates the document
+		log.log(Level.INFO, "Creating the document");
 		OmnisearchAbstractFactory omnisearchFactory = OmnisearchFactoryProducer.getFactory(OmnisearchFactoryProducer.DOCUMENT_FACTORY);
 		OmnisearchDocument document = omnisearchFactory.getDocument("TextSearch");
 		document.buildDocument(get_TrxName());
@@ -53,10 +56,10 @@ public class CreateIndexProcess extends SvrProcess {
 		
 		
 		//Creates the index
+		log.log(Level.INFO, "Creating the index");
 		omnisearchFactory = OmnisearchFactoryProducer.getFactory(OmnisearchFactoryProducer.INDEX_FACTORY);
 		OmnisearchIndex index = omnisearchFactory.getIndex("TextSearch");
 		index.createIndex(get_TrxName());
-		System.out.println("probando");
 		
         return null;
 	}
