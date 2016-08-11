@@ -38,14 +38,8 @@ public class TextSearchIndex implements OmnisearchIndex {
 		createStatement.append(" USING gin(");
 		createStatement.append(INDEX_COLUMN);
 		createStatement.append(")");
-		
-		System.out.println(createStatement.toString());
-		
-		int no = DB.executeUpdateEx(createStatement.toString(), trxName);
-		
-		System.out.println(no);
-		if (no == 1)
-			System.out.println("success");
+				
+		DB.executeUpdateEx(createStatement.toString(), trxName);
 	}
 
 	@Override

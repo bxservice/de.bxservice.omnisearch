@@ -23,6 +23,7 @@ package de.bxservice.tools;
 
 import java.util.ArrayList;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 
 import org.compiere.model.MColumn;
 import org.compiere.model.MTable;
@@ -48,7 +49,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 	    		insertIntoDocument(trxName, entry.getKey(), entry.getValue());
 		    }
 		} else {
-			System.out.println("No hay nada para indexar");
+			log.log(Level.WARNING, "No hay nada para indexar");
 		}
 		
 	}
@@ -76,7 +77,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
     	if (columns == null || columns.isEmpty())
     		return;
     	
-    	System.out.println("Indexing " + AD_Table_ID + " " + columns);
+		log.log(Level.INFO, "Indexing " + AD_Table_ID + " " + columns);
     	
     	StringBuilder insertQuery = new StringBuilder();
     	insertQuery.append("INSERT INTO ");
@@ -94,10 +95,10 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
     	if (selectQuery != null)
     		insertQuery.append(selectQuery);
     	else
-    		System.out.println("No se puede indexar una tabal con mas de una columna");
+    		log.log(Level.WARNING, "A table with more than one key column cannot be indexed");
 
-    	System.out.println("QWUETR " + insertQuery.toString());
-    	
+		log.log(Level.FINEST, insertQuery.toString());
+
     	if (Env.getAD_Client_ID(Env.getCtx())  == 0)
     		DB.executeUpdateEx(insertQuery.toString(), trxName);
     	else
