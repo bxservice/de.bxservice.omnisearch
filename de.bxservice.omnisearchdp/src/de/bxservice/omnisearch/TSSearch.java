@@ -12,57 +12,28 @@ import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 
+import de.bxservice.tools.TextSearchResult;
+
 public class TSSearch {
 	
 	protected static CLogger log = CLogger.getCLogger (TSSearch.class);
 	private HashMap<Integer, String> indexQuery = new HashMap<>();
-
-	public boolean validIndex() {
-
-		String sql = "SELECT COUNT(record_id) FROM BXS_omnSearch WHERE AD_CLIENT_ID IN (0,?)";
-
-		//Check if the table exists and if it's populated
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		try
-		{
-			pstmt = DB.prepareStatement(sql, null);
-			pstmt.setInt(1, Env.getAD_Client_ID(Env.getCtx()));
-			rs = pstmt.executeQuery();
-
-			if (rs.next())
-			{
-				int noRecords = rs.getInt(1);
-				
-				if (noRecords > 0)
-					return true;
-				else
-					return false;
-			}
-		}
-		catch (Exception e)
-		{
-			log.log(Level.SEVERE, sql.toString(), e);
-		}
-		finally
-		{
-			DB.close(rs, pstmt);
-			rs = null;
-			pstmt = null;
-		}
-
-		return false;
-	}
 	
-	public ArrayList<TextsearchResult> performQuery(String query) {
+	public ArrayList<TextSearchResult> performQuery(String query, boolean isAdvanced) {
 		
-		ArrayList<TextsearchResult> results = new ArrayList<>();
+		ArrayList<TextSearchResult> results = new ArrayList<>();
 		indexQuery.clear();
 		
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT ad_table_id, record_id ");
 		sql.append("FROM BXS_omnSearch");
-		sql.append(" WHERE bxs_omntsvector @@ to_tsquery('" + query + "') ");
+		sql.append(" WHERE bxs_omntsvector @@ ");
+		
+		if(isAdvanced)
+			sql.append("to_tsquery('" + query + "') ");
+		else
+			sql.append("plainto_tsquery('" + query + "') ");
+
 		sql.append("AND AD_CLIENT_ID IN (0,?) ");
 
 		
@@ -75,11 +46,11 @@ public class TSSearch {
 			pstmt.setInt(1, Env.getAD_Client_ID(Env.getCtx()));
 			rs = pstmt.executeQuery();
 
-			TextsearchResult result = null;
+			TextSearchResult result = null;
 			int i = 0;
 			while (rs.next())
 			{
-				result = new TextsearchResult();
+				result = new TextSearchResult();
 				result.setAd_Table_ID(rs.getInt(1));
 				result.setRecord_id(rs.getInt(2));
 				results.add(result);
@@ -105,7 +76,7 @@ public class TSSearch {
 		return results;
 	}
 	
-	private void setHeadline(TextsearchResult result, String query) {
+	private void setHeadline(TextSearchResult result, String query) {
 		
 		StringBuilder sql = new StringBuilder();
 		
