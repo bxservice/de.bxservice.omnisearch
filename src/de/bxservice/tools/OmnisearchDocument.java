@@ -31,4 +31,5 @@ public interface OmnisearchDocument {
 	void recreateDocument(String trxName);
 	void insertIntoDocument(String trxName, int AD_Table_ID, ArrayList<Integer> columns);
 	void deleteFromDocument(String trxName);
+	boolean isValidDocument();
 }
