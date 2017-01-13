@@ -25,6 +25,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
@@ -34,11 +35,10 @@ import org.compiere.model.MTable;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 
+import de.bxservice.utilities.TextSearchValues;
+
 public class TextSearchDocument extends AbstractOmnisearchDocument {
 
-	private static final String   TS_TABLE_NAME = "BXS_omnSearch";
-	private static final String   TS_INDEX_NAME = "BXS_IsTSIndex";
-	private static final String[] TS_COLUMNS = {"ad_client_id","ad_table_id","record_id","BXS_omnTSVector"};
 	private HashMap<Integer, String> indexQuery = new HashMap<>();
 
 	@Override
@@ -47,7 +47,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 	 */
 	public void buildDocument(String trxName) {
 		if (indexedTables == null)
-			getIndexedTables(true, trxName, TS_INDEX_NAME);
+			getIndexedTables(true, trxName, TextSearchValues.TS_INDEX_NAME);
 
 		if (indexedTables != null && indexedTables.size() > 0) {
 			log.log(Level.INFO, "Indexing...");
@@ -55,7 +55,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 				insertIntoDocument(trxName, entry.getKey(), entry.getValue());
 			}
 		} else {
-			log.log(Level.WARNING, "No hay nada para indexar");
+			log.log(Level.WARNING, "There's nothing to index");
 		}
 
 	}
@@ -67,7 +67,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 
 	@Override
 	public void deleteDocument(String trxName) {
-		String sql = "TRUNCATE " + TS_TABLE_NAME;
+		String sql = "TRUNCATE " + TextSearchValues.TS_TABLE_NAME;
 		DB.executeUpdateEx(sql, trxName);
 	}
 
@@ -86,9 +86,9 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 
 		StringBuilder insertQuery = new StringBuilder();
 		insertQuery.append("INSERT INTO ");
-		insertQuery.append(TS_TABLE_NAME);
+		insertQuery.append(TextSearchValues.TS_TABLE_NAME);
 		insertQuery.append(" (");
-		for (String columnName : TS_COLUMNS) {
+		for (String columnName : TextSearchValues.TS_COLUMNS) {
 			insertQuery.append(columnName);
 			insertQuery.append(",");
 		}
@@ -103,8 +103,6 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			log.log(Level.WARNING, "A table with more than one key column cannot be indexed");
 
 		log.log(Level.FINEST, insertQuery.toString());
-
-		System.out.println(insertQuery.toString());
 
 		if (Env.getAD_Client_ID(Env.getCtx())  == 0)
 			DB.executeUpdateEx(insertQuery.toString(), trxName);
@@ -135,7 +133,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			selectQuery.append(", ");
 
 			selectQuery.append("to_tsvector(");
-			selectQuery.append("'" + getTSConfig() + "', "); //Language Parameter config			
+			selectQuery.append("'" + getTSConfig() + "', "); //Language Parameter config		
 		}
 
 		//Columns that want to be indexed
@@ -252,12 +250,12 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 	}
 
 	private String getTSConfig() {
-		return MClient.get(Env.getCtx()).getLanguage().getLocale().getDisplayLanguage();
+		return MClient.get(Env.getCtx()).getLanguage().getLocale().getDisplayLanguage(Locale.ENGLISH);
 	}
 
 	@Override
 	public boolean isValidDocument() {
-		String sql = "SELECT COUNT(record_id) FROM " + TS_TABLE_NAME + " WHERE AD_CLIENT_ID IN (0,?)";
+		String sql = "SELECT COUNT(record_id) FROM " + TextSearchValues.TS_TABLE_NAME + " WHERE AD_CLIENT_ID IN (0,?)";
 
 		//Check if the table exists and if it's populated
 		PreparedStatement pstmt = null;
@@ -304,7 +302,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT ad_table_id, record_id ");
-		sql.append("FROM " + TS_TABLE_NAME);
+		sql.append("FROM " + TextSearchValues.TS_TABLE_NAME);
 		sql.append(" WHERE bxs_omntsvector @@ ");
 
 		if(isAdvanced)
@@ -363,7 +361,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			sql.append(indexQuery.get(result.getAd_Table_ID()));
 		} else {
 
-			ArrayList<Integer> columnIds = getIndexedColumns(result.getAd_Table_ID(), TS_INDEX_NAME);
+			ArrayList<Integer> columnIds = getIndexedColumns(result.getAd_Table_ID(), TextSearchValues.TS_INDEX_NAME);
 
 			if(columnIds == null || columnIds.isEmpty()) {
 				result.setHtmlHeadline("");
@@ -390,7 +388,6 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			while (!Thread.currentThread().isInterrupted() && rs.next())
 			{
 				result.setHtmlHeadline(rs.getString(1));
-				System.out.println(result.getHtmlHeadline());
 			}
 		}
 		catch (Exception e)
