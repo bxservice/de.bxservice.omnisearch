@@ -1,22 +1,18 @@
 package org.adempiere.webui.dashboard;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.adempiere.webui.apps.AEnv;
 import org.adempiere.webui.component.Checkbox;
 import org.adempiere.webui.component.Textbox;
+import org.compiere.util.Env;
+import org.compiere.util.Msg;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zul.Div;
-import org.zkoss.zul.Html;
 import org.zkoss.zul.Label;
 import org.zkoss.zul.ListModelArray;
 import org.zkoss.zul.Listbox;
-import org.zkoss.zul.Listcell;
-import org.zkoss.zul.Listitem;
 import org.zkoss.zul.Vbox;
 import org.zkoss.zul.Vlayout;
 import org.zkoss.zul.event.PagingEvent;
@@ -41,16 +37,14 @@ public class DPOmnisearchPanel extends DashboardPanel implements EventListener<E
 	private Textbox searchTextbox = new Textbox();
 	private Checkbox cbAdvancedSearch = new Checkbox();
 	private Listbox resultListbox = null;
-	
-	private Map<Html, TextSearchResult> mapCellColumn = new HashMap<Html, TextSearchResult>();
-	private boolean showHeadline = true;
-	
+	private Label   noResultsLabel = null;
+		
 	public DPOmnisearchPanel()
 	{
 		super();
 		
-		this.setSclass("omnisearchpanel-box");
-		this.setHeight("220px");
+		this.setSclass("dashboard-widget-max");
+		this.setHeight("500px");
 		
 		initLayout();
 		initComponent();
@@ -65,14 +59,13 @@ public class DPOmnisearchPanel extends DashboardPanel implements EventListener<E
 		
 		searchTextbox.addEventListener(Events.ON_OK, this);
 		searchTextbox.setHflex("1");
-		searchTextbox.setSclass("z-bandbox-input");
+		searchTextbox.setSclass("z-textbox");
 		
-		//cbClient.setLabel(Msg.translate(m_ctx, "AD_Client_ID"));
-		cbAdvancedSearch.setLabel("Advanced");
+		cbAdvancedSearch.setLabel(Msg.getMsg(Env.getCtx(), "BXS_AdvancedQuery"));
 		Label label = new Label();
 		
 		if (!searchDocument.isValidDocument()) {
-			label.setValue("The index does not exist or it is empty");
+			label.setValue(Msg.getMsg(Env.getCtx(), "BXS_NoIndex"));
 			searchTextbox.setReadonly(true);
 		} else {
 			resultListbox = new Listbox();
@@ -81,6 +74,10 @@ public class DPOmnisearchPanel extends DashboardPanel implements EventListener<E
 			resultListbox.setVflex("1");
 			resultListbox.setHflex("1");
 			resultListbox.addEventListener("onPaging", this);
+			
+			noResultsLabel = new Label();
+			noResultsLabel.setValue(Msg.getMsg(Env.getCtx(), "FindZeroRecords"));
+			noResultsLabel.setVisible(false);
 		}
 
 		Vbox box = new Vbox();
@@ -89,8 +86,10 @@ public class DPOmnisearchPanel extends DashboardPanel implements EventListener<E
 		box.setStyle("margin:5px 5px;");
 		box.appendChild(searchTextbox);
 		box.appendChild(cbAdvancedSearch);
-		if (resultListbox != null)
+		if (resultListbox != null) {
 			box.appendChild(resultListbox);
+			box.appendChild(noResultsLabel);
+		}
 		else
 			box.appendChild(label);
 
@@ -112,75 +111,35 @@ public class DPOmnisearchPanel extends DashboardPanel implements EventListener<E
 		div.setStyle("margin:5px 5px; overflow:auto;");
 				
 	}
+	
+	public void showResults(boolean show) {
+		if (noResultsLabel != null && resultListbox != null) {
+			resultListbox.setVisible(show);
+			noResultsLabel.setVisible(!show);
+		}
+	}
 
 	@Override
 	public void onEvent(Event e) throws Exception {
 		if (Events.ON_OK.equals(e.getName()) && e.getTarget() instanceof Textbox) {
 			Textbox textbox = (Textbox) e.getTarget();
 			
-			if (resultListbox.getItems() != null)
-				resultListbox.getItems().clear();
-			mapCellColumn.clear();
+			if (resultListbox.getItems() != null) {
+				setModel(new ArrayList<TextSearchResult>());
+			}
 			
 			results = searchDocument.performQuery(textbox.getText(), cbAdvancedSearch.isChecked());
 
 			if (results != null && results.size() > 0) {
 				
+				showResults(true);
 				setModel(results);
 				renderer = new OmnisearchItemRenderer();
 				resultListbox.setItemRenderer(renderer);
-				
-				
-				//TODO: Add listeners in renderer
-				Listitem item;
-				for (TextSearchResult result : results) {
-					item = new Listitem();
-					resultListbox.appendChild(item);
-					
-					Listcell cell = new Listcell();
-					Html htmlHeader = new Html();
-					if (showHeadline) {
-						
-						item.appendChild(cell);
-						Vlayout div = new Vlayout();		
-						StringBuilder divStyle = new StringBuilder();
-						
-						divStyle.append("text-align: left; ");
-						divStyle.append("overflow:auto");
-						div.setStyle(divStyle.toString());
-						
-					    htmlHeader.setContent("<font color=\"#1a0dab\">" + result.getLabel() + "</font>");
-						htmlHeader.addEventListener(Events.ON_CLICK, this);
-
-						div.appendChild(htmlHeader);
-						htmlHeader.setSclass("menu-href");
-
-						String htmlText = result.getHtmlHeadline();
-						Div content = new Div();
-					    div.appendChild(content);
-					    Html htmlHeadline = new Html();
-					    content.appendChild(htmlHeadline);
-					    htmlHeadline.setContent(htmlText);
-					    cell.appendChild(div);
-					    
-						//mapCellColumn.put(htmlHeader, result);						
-					} else {
-						htmlHeader.setContent("<font color=\"#1a0dab\">" + result.getLabel() + "</font>");
-						htmlHeader.addEventListener(Events.ON_CLICK, this);
-
-						cell.appendChild(htmlHeader);
-						htmlHeader.setSclass("menu-href");
-						item.appendChild(cell);
-						//mapCellColumn.put(htmlHeader, result);						
-					}
-					mapCellColumn.put(htmlHeader, result);
-
-				}
-				
+		
+			} else {
+				showResults(false);
 			}
-		} else if (Events.ON_CLICK.equals(e.getName()) && (e.getTarget() instanceof Html)) {
-			TextSearchResult row = mapCellColumn.get(e.getTarget());
-			zoom(row.getRecord_id(), row.getAd_Table_ID());
 		} else if ("onPaging".equals(e.getName()) && (e.getTarget() instanceof Listbox)) {
 			PagingEvent ee = (PagingEvent) e;
 			int pgno = ee.getActivePage();
@@ -192,18 +151,12 @@ public class DPOmnisearchPanel extends DashboardPanel implements EventListener<E
 	            if (end > results.size()) 
 	            	end = results.size();
 				
-	            for(int i = start; i < end; i++) {
+	            for(int i = start; i < end; i++)
 					searchDocument.setHeadline(results.get(i), searchTextbox.getText());
-				}
 	            
 				setModel(results);
-
 			}	
 		}
-	}
-	
-	private void zoom(int recordId, int ad_table_id) {
-		AEnv.zoom(ad_table_id, recordId);
 	}
 
 }
