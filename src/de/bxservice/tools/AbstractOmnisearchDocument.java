@@ -27,7 +27,7 @@ public abstract class AbstractOmnisearchDocument implements OmnisearchDocument {
 	private void getIndexedTables(String trxName, String indexColumnName) {
 		StringBuilder sql = new StringBuilder("SELECT AD_TABLE.AD_TABLE_ID, AD_COLUMN.AD_COLUMN_ID FROM AD_TABLE")
 		.append(" JOIN AD_COLUMN ON AD_COLUMN.AD_TABLE_ID = AD_TABLE.AD_TABLE_ID AND AD_COLUMN."+ indexColumnName +" = 'Y'")
-		.append(" WHERE AD_TABLE.IsActive='Y' AND AD_COLUMN.IsActive='Y' AND AD_TABLE.AD_Client_ID = ?")
+		.append(" WHERE AD_TABLE.IsActive='Y' AND AD_COLUMN.IsActive='Y' AND AD_TABLE.AD_Client_ID IN (0,?)")
 		.append(" GROUP BY AD_TABLE.AD_TABLE_ID, AD_COLUMN_ID ");
 		
         //Bring the table ids that are indexed

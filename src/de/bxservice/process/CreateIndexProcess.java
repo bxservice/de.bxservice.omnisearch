@@ -64,7 +64,7 @@ public class CreateIndexProcess extends SvrProcess {
 		log.log(Level.INFO, "Creating the index");
 		omnisearchFactory = OmnisearchFactoryProducer.getFactory(OmnisearchFactoryProducer.INDEX_FACTORY);
 		OmnisearchIndex index = omnisearchFactory.getIndex(indexType);
-		index.createIndex(get_TrxName());
+		index.recreateIndex(get_TrxName());
 		
         return "";
 	}

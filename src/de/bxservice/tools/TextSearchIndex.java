@@ -23,20 +23,18 @@ package de.bxservice.tools;
 
 import org.compiere.util.DB;
 
+import de.bxservice.utilities.TextSearchValues;
+
 public class TextSearchIndex implements OmnisearchIndex {
-	
-	private static final String INDEX_TABLE = "BXS_omnSearch";
-	private static final String INDEX_COLUMN = "BXS_omnTSVector";
-	private static final String INDEX_NAME = "textsearch_idx";
 
 	@Override
 	public void createIndex(String trxName) {
 		StringBuilder createStatement = new StringBuilder("CREATE INDEX ");
-		createStatement.append(INDEX_NAME);
+		createStatement.append(TextSearchValues.INDEX_NAME);
 		createStatement.append(" ON ");
-		createStatement.append(INDEX_TABLE);
+		createStatement.append(TextSearchValues.TS_TABLE_NAME);
 		createStatement.append(" USING gin(");
-		createStatement.append(INDEX_COLUMN);
+		createStatement.append(TextSearchValues.INDEX_COLUMN);
 		createStatement.append(")");
 				
 		DB.executeUpdateEx(createStatement.toString(), trxName);
@@ -49,7 +47,7 @@ public class TextSearchIndex implements OmnisearchIndex {
 
 	@Override
 	public void dropIndex(String trxName) {
-		String dropStatement = "DROP INDEX IF EXISTS " + INDEX_NAME;
+		String dropStatement = "DROP INDEX IF EXISTS " + TextSearchValues.INDEX_NAME;
 		DB.executeUpdateEx(dropStatement, trxName);
 	}
 
