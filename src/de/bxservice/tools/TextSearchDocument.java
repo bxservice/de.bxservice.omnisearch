@@ -97,19 +97,17 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 
 		String selectQuery = getSelectQuery(AD_Table_ID, columns, false);
 
-		if (selectQuery != null)
-			insertQuery.append(selectQuery);
-		else
+		if (selectQuery == null) {
 			log.log(Level.WARNING, "A table with more than one key column cannot be indexed");
+		} else {
+			insertQuery.append(selectQuery);
+			log.log(Level.FINEST, insertQuery.toString());
 
-		log.log(Level.FINEST, insertQuery.toString());
-
-		if (Env.getAD_Client_ID(Env.getCtx())  == 0)
-			DB.executeUpdateEx(insertQuery.toString(), trxName);
-		else
-			DB.executeUpdateEx(insertQuery.toString(), new Object[]{Env.getAD_Client_ID(Env.getCtx())},trxName);
-
-
+			if (Env.getAD_Client_ID(Env.getCtx())  == 0)
+				DB.executeUpdateEx(insertQuery.toString(), trxName);
+			else
+				DB.executeUpdateEx(insertQuery.toString(), new Object[]{Env.getAD_Client_ID(Env.getCtx())},trxName);
+		}
 	}
 
 	private String getSelectQuery(int AD_Table_ID, ArrayList<Integer> columns, boolean isSearch) {
@@ -186,17 +184,15 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 	    	selectQuery.append(",");
 	    	selectQuery.append("to_tsquery(?) q");
 	    	
-	    	selectQuery.append(" WHERE " + mainTableAlias + ".AD_Client_ID IN (0, ?) AND " + mainTableAlias + ".IsActive='Y'");
+	    	selectQuery.append(" WHERE " + mainTableAlias + ".AD_Client_ID IN (0, ?)");
 	    	selectQuery.append(" AND ");
 	    	selectQuery.append(mainTableAlias + ".");
 			selectQuery.append(table.getKeyColumns()[0]); //Record_ID
 			selectQuery.append(" = ? ) AS foo WHERE body @@ q");
 		} else {
 			//If System -> all clients
-			if (Env.getAD_Client_ID(Env.getCtx())  == 0)
-				selectQuery.append(" WHERE " + mainTableAlias + ".IsActive='Y'");
-			else
-				selectQuery.append(" WHERE " + mainTableAlias + ".AD_Client_ID IN (0, ?) AND " + mainTableAlias + ".IsActive='Y'");			
+			if (Env.getAD_Client_ID(Env.getCtx()) != 0)
+				selectQuery.append(" WHERE " + mainTableAlias + ".AD_Client_ID IN (0, ?)");
 		}
 
 		return selectQuery.toString();
