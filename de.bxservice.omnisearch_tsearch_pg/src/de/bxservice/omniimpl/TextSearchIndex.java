@@ -19,11 +19,11 @@
 * Contributors:                                                       *
 * - Diego Ruiz - Bx Service GmbH                                      *
 **********************************************************************/
-package de.bxservice.tools;
+package de.bxservice.omniimpl;
 
 import org.compiere.util.DB;
 
-import de.bxservice.utilities.TextSearchValues;
+import de.bxservice.tools.OmnisearchIndex;
 
 public class TextSearchIndex implements OmnisearchIndex {
 

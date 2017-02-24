@@ -14,7 +14,7 @@ import org.zkoss.zul.Listitem;
 import org.zkoss.zul.ListitemRenderer;
 import org.zkoss.zul.Vlayout;
 
-import de.bxservice.tools.TextSearchResult;
+import de.bxservice.omniimpl.TextSearchResult;
 
 public class OmnisearchItemRenderer implements ListitemRenderer<TextSearchResult>, EventListener<Event>  {
 

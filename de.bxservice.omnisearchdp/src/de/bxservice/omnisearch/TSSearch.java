@@ -12,7 +12,7 @@ import org.compiere.util.CLogger;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 
-import de.bxservice.tools.TextSearchResult;
+import de.bxservice.omniimpl.TextSearchResult;
 
 public class TSSearch {
 	
