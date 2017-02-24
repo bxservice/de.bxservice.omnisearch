@@ -19,7 +19,7 @@
  * Contributors:                                                       *
  * - Diego Ruiz - Bx Service GmbH                                      *
  **********************************************************************/
-package de.bxservice.tools;
+package de.bxservice.omniimpl;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,7 +35,7 @@ import org.compiere.model.MTable;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 
-import de.bxservice.utilities.TextSearchValues;
+import de.bxservice.tools.AbstractOmnisearchDocument;
 
 public class TextSearchDocument extends AbstractOmnisearchDocument {
 

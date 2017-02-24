@@ -21,6 +21,10 @@
 **********************************************************************/
 package de.bxservice.tools;
 
+import org.adempiere.base.Service;
+import org.adempiere.base.ServiceQuery;
+import org.adempiere.exceptions.AdempiereException;
+
 public class OmnisearchIndexFactory extends OmnisearchAbstractFactory {
 	
 	@Override
@@ -29,10 +33,15 @@ public class OmnisearchIndexFactory extends OmnisearchAbstractFactory {
 		if (indexType == null)
 			return null;
 		
-		if (indexType.equals(TEXTSEARCH_INDEX)) {
-			return new TextSearchIndex();
-		}
-		//Lucene and others go below
+		ServiceQuery query = new ServiceQuery();
+		query.put("indexType", indexType);
+		OmnisearchIndex custom = Service.locator().locate(OmnisearchIndex.class, query).getService();			
+		if (custom == null)
+			throw new AdempiereException("No OmnisearchIndex provider found for indexType " + indexType);
+		try {
+			return custom.getClass().newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {}
+
 		return null;
 	}
 

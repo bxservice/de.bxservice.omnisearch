@@ -1,4 +1,4 @@
-package de.bxservice.tools;
+package de.bxservice.omniimpl;
 
 import org.compiere.model.MTable;
 import org.compiere.model.MUserDefWin;

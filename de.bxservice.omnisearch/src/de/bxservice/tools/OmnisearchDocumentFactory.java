@@ -1,5 +1,9 @@
 package de.bxservice.tools;
 
+import org.adempiere.base.Service;
+import org.adempiere.base.ServiceQuery;
+import org.adempiere.exceptions.AdempiereException;
+
 public class OmnisearchDocumentFactory extends OmnisearchAbstractFactory {
 
 	@Override
@@ -12,10 +16,14 @@ public class OmnisearchDocumentFactory extends OmnisearchAbstractFactory {
 		if (documentType == null)
 			return null;
 		
-		if (documentType.equals(TEXTSEARCH_INDEX)) {
-			return new TextSearchDocument();
-		}
-		//Lucene and others go below
+		ServiceQuery query = new ServiceQuery();
+		query.put("documentType", documentType);
+		OmnisearchDocument custom = Service.locator().locate(OmnisearchDocument.class, query).getService();			
+		if (custom == null)
+			throw new AdempiereException("No OmnisearchDocument provider found for documentType " + documentType);
+		try {
+			return custom.getClass().newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {}
 		
 		return null;
 	}

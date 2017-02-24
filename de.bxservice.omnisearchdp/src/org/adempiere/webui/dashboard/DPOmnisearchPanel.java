@@ -17,8 +17,9 @@ import org.zkoss.zul.Vbox;
 import org.zkoss.zul.Vlayout;
 import org.zkoss.zul.event.PagingEvent;
 
-import de.bxservice.tools.TextSearchDocument;
-import de.bxservice.tools.TextSearchResult;
+import de.bxservice.omniimpl.TextSearchDocument;
+import de.bxservice.omniimpl.TextSearchResult;
+
 
 public class DPOmnisearchPanel extends DashboardPanel implements EventListener<Event> {
 

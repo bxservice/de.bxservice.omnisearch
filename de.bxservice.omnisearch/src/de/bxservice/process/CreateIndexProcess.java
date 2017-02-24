@@ -48,7 +48,7 @@ public class CreateIndexProcess extends SvrProcess {
 			else
 				log.log(Level.SEVERE, "Unknown Parameter: " + name);
 		}
-	}	
+	}
 
 	@Override
 	protected String doIt() throws Exception {

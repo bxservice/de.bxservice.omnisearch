@@ -1,4 +1,4 @@
-package de.bxservice.utilities;
+package de.bxservice.omniimpl;
 
 public interface TextSearchValues {
 
