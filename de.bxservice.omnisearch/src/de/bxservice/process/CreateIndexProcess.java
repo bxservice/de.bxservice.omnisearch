@@ -52,6 +52,10 @@ public class CreateIndexProcess extends SvrProcess {
 
 	@Override
 	protected String doIt() throws Exception {
+		
+		//Set default in case of null to avoid NPE
+		if (indexType == null)
+			indexType = OmnisearchAbstractFactory.TEXTSEARCH_INDEX;
 
 		//First populate the vector then create the index for faster performance
 		//Creates the document
