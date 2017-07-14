@@ -23,7 +23,7 @@ package de.bxservice.tools;
 
 public abstract class OmnisearchAbstractFactory {
 	
-	protected static final String TEXTSEARCH_INDEX = "TS";
+	public static final String TEXTSEARCH_INDEX = "TS";
 	
 	public abstract OmnisearchIndex getIndex(String indexType);
 	public abstract OmnisearchDocument getDocument(String documentType);
