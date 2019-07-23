@@ -17,7 +17,7 @@
 * MA 02110-1301, USA.                                                 *
 *                                                                     *
 * Contributors:                                                       *
-* - Diego Ruiz - Bx Service GmbH                                      *
+* - Diego Ruiz - BX Service GmbH                                      *
 **********************************************************************/
 package de.bxservice.omnisearch.tools;
 
