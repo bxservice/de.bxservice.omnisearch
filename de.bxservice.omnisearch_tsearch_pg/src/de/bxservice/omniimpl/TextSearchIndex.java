@@ -22,9 +22,14 @@
 package de.bxservice.omniimpl;
 
 import org.compiere.util.DB;
+import org.osgi.service.component.annotations.Component;
 
 import de.bxservice.omnisearch.tools.OmnisearchIndex;
 
+@Component(
+		service = OmnisearchIndex.class,
+		property= {"indexType:String=TS"}
+)
 public class TextSearchIndex implements OmnisearchIndex {
 
 	@Override

@@ -5,10 +5,12 @@ Bundle-SymbolicName: de.bxservice.omnisearch_tsearch_pg;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.adempiere.base;bundle-version="4.1.0",
- org.adempiere.plugin.utils;bundle-version="4.1.0"
+ org.adempiere.plugin.utils;bundle-version="4.1.0",
+ de.bxservice.omnisearch;bundle-version="1.0.0"
 Bundle-Activator: org.adempiere.plugin.utils.Incremental2PackActivator
 Service-Component: OSGI-INF/*.xml
-Import-Package: de.bxservice.omnisearch.tools,
- org.compiere.model
+Import-Package: org.compiere.model,
+ org.osgi.service.event;version="1.4.0"
 Bundle-ActivationPolicy: lazy
 Export-Package: de.bxservice.omniimpl
+Automatic-Module-Name: de.bxservice.omnisearch_tsearch_pg
