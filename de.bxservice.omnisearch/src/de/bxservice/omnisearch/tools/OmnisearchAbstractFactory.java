@@ -19,19 +19,12 @@
 * Contributors:                                                       *
 * - Diego Ruiz - Bx Service GmbH                                      *
 **********************************************************************/
-package de.bxservice.tools;
+package de.bxservice.omnisearch.tools;
 
-/**
- * Indexes can be:
- * - Lucene
- * - Full Text Search (Postgres)
- * - NoSql Database ...
- * @author Diego Ruiz
- */
-public interface OmnisearchIndex {
+public abstract class OmnisearchAbstractFactory {
 	
-	void createIndex(String trxName);
-	void updateIndex(String trxName);
-	void dropIndex(String trxName);
-	void recreateIndex(String trxName);
+	public static final String TEXTSEARCH_INDEX = "TS";
+	
+	public abstract OmnisearchIndex getIndex(String indexType);
+	public abstract OmnisearchDocument getDocument(String documentType);
 }

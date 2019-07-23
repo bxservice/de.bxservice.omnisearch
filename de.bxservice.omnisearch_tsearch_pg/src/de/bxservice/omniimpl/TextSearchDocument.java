@@ -35,7 +35,7 @@ import org.compiere.model.MTable;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 
-import de.bxservice.tools.AbstractOmnisearchDocument;
+import de.bxservice.omnisearch.tools.AbstractOmnisearchDocument;
 
 public class TextSearchDocument extends AbstractOmnisearchDocument {
 

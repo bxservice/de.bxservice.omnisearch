@@ -2,12 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Omnisearch
 Bundle-SymbolicName: de.bxservice.omnisearch;singleton:=true
-Bundle-Version: 4.1.0.qualifier
+Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.adempiere.base;bundle-version="4.1.0",
  org.adempiere.plugin.utils;bundle-version="4.1.0"
 Bundle-Activator: org.adempiere.plugin.utils.Incremental2PackActivator
 Service-Component: OSGI-INF/*.xml
 Import-Package: org.compiere.model
-Export-Package: de.bxservice.tools
+Export-Package: de.bxservice.omnisearch.tools
 Bundle-ActivationPolicy: lazy

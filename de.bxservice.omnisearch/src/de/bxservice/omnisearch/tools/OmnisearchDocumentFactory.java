@@ -1,4 +1,4 @@
-package de.bxservice.tools;
+package de.bxservice.omnisearch.tools;
 
 import org.adempiere.base.Service;
 import org.adempiere.base.ServiceQuery;

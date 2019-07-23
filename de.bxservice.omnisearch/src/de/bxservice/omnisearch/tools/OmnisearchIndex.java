@@ -19,17 +19,19 @@
 * Contributors:                                                       *
 * - Diego Ruiz - Bx Service GmbH                                      *
 **********************************************************************/
-package de.bxservice.tools;
+package de.bxservice.omnisearch.tools;
 
-import java.util.ArrayList;
-
-public interface OmnisearchDocument {
+/**
+ * Indexes can be:
+ * - Lucene
+ * - Full Text Search (Postgres)
+ * - NoSql Database ...
+ * @author Diego Ruiz
+ */
+public interface OmnisearchIndex {
 	
-	void buildDocument(String trxName);
-	void updateDocument(String trxName);
-	void deleteDocument(String trxName);
-	void recreateDocument(String trxName);
-	void insertIntoDocument(String trxName, int AD_Table_ID, ArrayList<Integer> columns);
-	void deleteFromDocument(String trxName);
-	boolean isValidDocument();
+	void createIndex(String trxName);
+	void updateIndex(String trxName);
+	void dropIndex(String trxName);
+	void recreateIndex(String trxName);
 }

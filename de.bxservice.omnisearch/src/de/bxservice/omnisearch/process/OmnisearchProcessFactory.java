@@ -19,35 +19,23 @@
 * Contributors:                                                       *
 * - Diego Ruiz - Bx Service GmbH                                      *
 **********************************************************************/
-package de.bxservice.tools;
+package de.bxservice.omnisearch.process;
+import org.adempiere.base.IProcessFactory;
+import org.compiere.process.ProcessCall;
 
-import org.adempiere.base.Service;
-import org.adempiere.base.ServiceQuery;
-import org.adempiere.exceptions.AdempiereException;
 
-public class OmnisearchIndexFactory extends OmnisearchAbstractFactory {
-	
-	@Override
-	public OmnisearchIndex getIndex(String indexType) {
-		
-		if (indexType == null)
-			return null;
-		
-		ServiceQuery query = new ServiceQuery();
-		query.put("indexType", indexType);
-		OmnisearchIndex custom = Service.locator().locate(OmnisearchIndex.class, query).getService();			
-		if (custom == null)
-			throw new AdempiereException("No OmnisearchIndex provider found for indexType " + indexType);
-		try {
-			return custom.getClass().newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {}
-
-		return null;
-	}
+public class OmnisearchProcessFactory implements IProcessFactory {
 
 	@Override
-	public OmnisearchDocument getDocument(String documentType) {
-		return null;
+	public ProcessCall newProcessInstance(String className) {
+		ProcessCall process = null;
+		if ("de.bxservice.process.CreateIndexProcess".equals(className)) {
+			try {
+				process =  CreateIndexProcess.class.newInstance();
+			} catch (Exception e) {}
+		}
+
+		return process;
 	}
-	
+
 }

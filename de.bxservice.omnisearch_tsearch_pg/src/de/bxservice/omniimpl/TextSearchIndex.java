@@ -23,7 +23,7 @@ package de.bxservice.omniimpl;
 
 import org.compiere.util.DB;
 
-import de.bxservice.tools.OmnisearchIndex;
+import de.bxservice.omnisearch.tools.OmnisearchIndex;
 
 public class TextSearchIndex implements OmnisearchIndex {
 

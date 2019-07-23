@@ -19,17 +19,17 @@
 * Contributors:                                                       *
 * - Diego Ruiz - Bx Service GmbH                                      *
 **********************************************************************/
-package de.bxservice.process;
+package de.bxservice.omnisearch.process;
 
 import java.util.logging.Level;
 
 import org.compiere.process.ProcessInfoParameter;
 import org.compiere.process.SvrProcess;
 
-import de.bxservice.tools.OmnisearchAbstractFactory;
-import de.bxservice.tools.OmnisearchDocument;
-import de.bxservice.tools.OmnisearchFactoryProducer;
-import de.bxservice.tools.OmnisearchIndex;
+import de.bxservice.omnisearch.tools.OmnisearchAbstractFactory;
+import de.bxservice.omnisearch.tools.OmnisearchDocument;
+import de.bxservice.omnisearch.tools.OmnisearchFactoryProducer;
+import de.bxservice.omnisearch.tools.OmnisearchIndex;
 
 public class CreateIndexProcess extends SvrProcess {
 	
