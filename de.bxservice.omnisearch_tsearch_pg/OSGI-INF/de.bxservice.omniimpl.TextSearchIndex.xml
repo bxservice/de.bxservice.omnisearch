@@ -2,7 +2,7 @@
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="de.bxservice.omniimpl.TextSearchIndex">
    <implementation class="de.bxservice.omniimpl.TextSearchIndex"/>
    <service>
-      <provide interface="de.bxservice.tools.OmnisearchIndex"/>
+      <provide interface="de.bxservice.omnisearch.tools.OmnisearchIndex"/>
    </service>
    <property name="indexType" type="String" value="TS"/>
 </scr:component>

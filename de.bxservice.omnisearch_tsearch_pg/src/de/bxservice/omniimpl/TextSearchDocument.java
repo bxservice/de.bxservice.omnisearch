@@ -34,9 +34,15 @@ import org.compiere.model.MColumn;
 import org.compiere.model.MTable;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
+import org.osgi.service.component.annotations.Component;
 
 import de.bxservice.omnisearch.tools.AbstractOmnisearchDocument;
+import de.bxservice.omnisearch.tools.OmnisearchDocument;
 
+@Component(
+		service = OmnisearchDocument.class,
+		property= {"documentType:String=TS"}
+)
 public class TextSearchDocument extends AbstractOmnisearchDocument {
 
 	private HashMap<Integer, String> indexQuery = new HashMap<>();
@@ -297,7 +303,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		indexQuery.clear();
 
 		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT ad_table_id, record_id ");
+		sql.append("SELECT DISTINCT ad_table_id, record_id ");
 		sql.append("FROM " + TextSearchValues.TS_TABLE_NAME);
 		sql.append(" WHERE bxs_omntsvector @@ ");
 
