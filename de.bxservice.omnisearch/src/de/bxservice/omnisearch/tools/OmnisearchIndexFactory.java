@@ -21,6 +21,8 @@
 **********************************************************************/
 package de.bxservice.omnisearch.tools;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.adempiere.base.Service;
 import org.adempiere.base.ServiceQuery;
 import org.adempiere.exceptions.AdempiereException;
@@ -39,8 +41,10 @@ public class OmnisearchIndexFactory extends OmnisearchAbstractFactory {
 		if (custom == null)
 			throw new AdempiereException("No OmnisearchIndex provider found for indexType " + indexType);
 		try {
-			return custom.getClass().newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {}
+			return custom.getClass().getConstructor().newInstance();
+		} catch (InstantiationException | IllegalAccessException |
+				IllegalArgumentException | InvocationTargetException |
+				NoSuchMethodException | SecurityException e) {}
 
 		return null;
 	}

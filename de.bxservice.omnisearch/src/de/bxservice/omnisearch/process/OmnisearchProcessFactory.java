@@ -22,20 +22,20 @@
 package de.bxservice.omnisearch.process;
 import org.adempiere.base.IProcessFactory;
 import org.compiere.process.ProcessCall;
+import org.osgi.service.component.annotations.Component;
 
-
+@Component(
+		property= {"service.ranking:Integer=100"}
+)
 public class OmnisearchProcessFactory implements IProcessFactory {
 
 	@Override
 	public ProcessCall newProcessInstance(String className) {
-		ProcessCall process = null;
-		if ("de.bxservice.process.CreateIndexProcess".equals(className)) {
-			try {
-				process =  CreateIndexProcess.class.newInstance();
-			} catch (Exception e) {}
+		if (CreateIndexProcess.class.getName().equals(className)) {
+			return new CreateIndexProcess();
 		}
 
-		return process;
+		return null;
 	}
 
 }
