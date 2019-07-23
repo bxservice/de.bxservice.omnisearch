@@ -1,4 +1,4 @@
-package de.bxservice.tools;
+package de.bxservice.omnisearch.tools;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

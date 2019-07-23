@@ -19,23 +19,17 @@
 * Contributors:                                                       *
 * - Diego Ruiz - Bx Service GmbH                                      *
 **********************************************************************/
-package de.bxservice.process;
-import org.adempiere.base.IProcessFactory;
-import org.compiere.process.ProcessCall;
+package de.bxservice.omnisearch.tools;
 
+import java.util.ArrayList;
 
-public class OmnisearchProcessFactory implements IProcessFactory {
-
-	@Override
-	public ProcessCall newProcessInstance(String className) {
-		ProcessCall process = null;
-		if ("de.bxservice.process.CreateIndexProcess".equals(className)) {
-			try {
-				process =  CreateIndexProcess.class.newInstance();
-			} catch (Exception e) {}
-		}
-
-		return process;
-	}
-
+public interface OmnisearchDocument {
+	
+	void buildDocument(String trxName);
+	void updateDocument(String trxName);
+	void deleteDocument(String trxName);
+	void recreateDocument(String trxName);
+	void insertIntoDocument(String trxName, int AD_Table_ID, ArrayList<Integer> columns);
+	void deleteFromDocument(String trxName);
+	boolean isValidDocument();
 }

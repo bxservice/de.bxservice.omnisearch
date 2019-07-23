@@ -19,12 +19,35 @@
 * Contributors:                                                       *
 * - Diego Ruiz - Bx Service GmbH                                      *
 **********************************************************************/
-package de.bxservice.tools;
+package de.bxservice.omnisearch.tools;
 
-public abstract class OmnisearchAbstractFactory {
+import org.adempiere.base.Service;
+import org.adempiere.base.ServiceQuery;
+import org.adempiere.exceptions.AdempiereException;
+
+public class OmnisearchIndexFactory extends OmnisearchAbstractFactory {
 	
-	public static final String TEXTSEARCH_INDEX = "TS";
+	@Override
+	public OmnisearchIndex getIndex(String indexType) {
+		
+		if (indexType == null)
+			return null;
+		
+		ServiceQuery query = new ServiceQuery();
+		query.put("indexType", indexType);
+		OmnisearchIndex custom = Service.locator().locate(OmnisearchIndex.class, query).getService();			
+		if (custom == null)
+			throw new AdempiereException("No OmnisearchIndex provider found for indexType " + indexType);
+		try {
+			return custom.getClass().newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {}
+
+		return null;
+	}
+
+	@Override
+	public OmnisearchDocument getDocument(String documentType) {
+		return null;
+	}
 	
-	public abstract OmnisearchIndex getIndex(String indexType);
-	public abstract OmnisearchDocument getDocument(String documentType);
 }
