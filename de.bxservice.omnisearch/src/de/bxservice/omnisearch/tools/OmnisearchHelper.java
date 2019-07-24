@@ -41,6 +41,7 @@ public class OmnisearchHelper {
 	
 	/**	Logger			*/
 	private static CLogger log = CLogger.getCLogger(OmnisearchHelper.class);
+	public static String MSYSCONFIG_AUTOMATIC_RECREATE = "OMNISEARCH_AUTOMATIC_RECREATE_INDEX";
 	
 	public static void recreateIndex(String indexType) {
 		

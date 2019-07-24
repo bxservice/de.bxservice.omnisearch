@@ -28,6 +28,7 @@ import org.adempiere.base.event.AbstractEventHandler;
 import org.adempiere.base.event.IEventManager;
 import org.adempiere.base.event.IEventTopics;
 import org.compiere.model.MColumn;
+import org.compiere.model.MSysConfig;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.osgi.service.event.Event;
@@ -81,10 +82,12 @@ public class TSearchIndexEventHandler extends AbstractEventHandler {
 				}
 			}
 
-			if (log.isLoggable(Level.INFO))
-				log.info("Recreating index po : " + po + "type: "+type);
+			if (MSysConfig.getBooleanValue(OmnisearchHelper.MSYSCONFIG_AUTOMATIC_RECREATE, false)) {
+				if (log.isLoggable(Level.INFO))
+					log.info("Recreating index po : " + po + "type: "+type);
 
-			OmnisearchHelper.recreateIndex(OmnisearchAbstractFactory.TEXTSEARCH_INDEX);
+				OmnisearchHelper.recreateIndex(OmnisearchAbstractFactory.TEXTSEARCH_INDEX);				
+			}
 		}
 	}
 
