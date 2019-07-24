@@ -43,26 +43,31 @@ public class OmnisearchHelper {
 	private static CLogger log = CLogger.getCLogger(OmnisearchHelper.class);
 	
 	public static void recreateIndex(String indexType) {
-		int AD_Process_ID = MProcess.getProcess_ID("CreateIndexProcess", null);
-		MProcess process = new MProcess(Env.getCtx(), AD_Process_ID, null);
-		ProcessInfo m_pi = new ProcessInfo ("", AD_Process_ID);
-		if (indexType != null) {
-			MPInstance instance = new MPInstance(Env.getCtx(), AD_Process_ID, 0);
-			if (!instance.save()) {
-				log.log(Level.SEVERE, Msg.getMsg(Env.getCtx(), "ProcessNoInstance"));
-				return;
-			}
-			m_pi.setAD_PInstance_ID(instance.getAD_PInstance_ID());
-			MPInstancePara para = new MPInstancePara(instance, 0);
-			para.setParameter("BXS_IndexType", indexType);
-		}
 		
-		String newTrxName = Trx.createTrxName("OmniIndex");
-		Trx trx = Trx.get(newTrxName, true);
-		if (!process.processIt(m_pi, trx) && m_pi.getClassName() != null) {
-			String msg = Msg.getMsg(Env.getCtx(), "ProcessFailed") + " : (" + m_pi.getClassName() + ") " + m_pi.getSummary();
-			log.log(Level.SEVERE, msg);
-		}
+		Thread recreateIndexThread = new Thread(() -> {
+			int AD_Process_ID = MProcess.getProcess_ID("CreateIndexProcess", null);
+			MProcess process = new MProcess(Env.getCtx(), AD_Process_ID, null);
+			ProcessInfo m_pi = new ProcessInfo ("", AD_Process_ID);
+			if (indexType != null) {
+				MPInstance instance = new MPInstance(Env.getCtx(), AD_Process_ID, 0);
+				if (!instance.save()) {
+					log.log(Level.SEVERE, Msg.getMsg(Env.getCtx(), "ProcessNoInstance"));
+					return;
+				}
+				m_pi.setAD_PInstance_ID(instance.getAD_PInstance_ID());
+				MPInstancePara para = new MPInstancePara(instance, 0);
+				para.setParameter("BXS_IndexType", indexType);
+			}
+
+			String newTrxName = Trx.createTrxName("OmniIndex");
+			Trx trx = Trx.get(newTrxName, true);
+			if (!process.processIt(m_pi, trx) && m_pi.getClassName() != null) {
+				String msg = Msg.getMsg(Env.getCtx(), "ProcessFailed") + " : (" + m_pi.getClassName() + ") " + m_pi.getSummary();
+				log.log(Level.SEVERE, msg);
+			}
+		});
+		recreateIndexThread.setDaemon(true);
+		recreateIndexThread.start();
 	}
 	
 	public static List<String> getIndexedTables(String indexColumnName) {
