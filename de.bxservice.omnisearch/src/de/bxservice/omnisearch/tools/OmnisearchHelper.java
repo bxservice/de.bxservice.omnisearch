@@ -70,12 +70,12 @@ public class OmnisearchHelper {
 		recreateIndexThread.start();
 	}
 	
-	public static List<String> getIndexedTables(String indexColumnName) {
+	public static List<String> getIndexedTables(String indexColumnName, String trxName) {
 
 		List<String> tableNames = new ArrayList<>();
 		
 		//Check if the index column exists to avoid NPE in the validator the first time the plug-in runs  
-		int no = DB.getSQLValue(null, "SELECT 1 FROM ad_column WHERE columnname =?", indexColumnName);
+		int no = DB.getSQLValue(trxName, "SELECT 1 FROM ad_column WHERE columnname =?", indexColumnName);
 		
 		if (no > 0) {
 			StringBuilder sql = new StringBuilder("SELECT AD_TABLE.tablename FROM AD_TABLE")
@@ -88,7 +88,7 @@ public class OmnisearchHelper {
 			PreparedStatement pstmt = null;
 			ResultSet rs = null;
 			try {
-				pstmt = DB.prepareStatement(sql.toString(), null);
+				pstmt = DB.prepareStatement(sql.toString(), trxName);
 				pstmt.setInt(1, Env.getAD_Client_ID(Env.getCtx()));
 				rs = pstmt.executeQuery();
 
