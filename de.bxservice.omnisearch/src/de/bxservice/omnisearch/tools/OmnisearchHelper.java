@@ -72,32 +72,36 @@ public class OmnisearchHelper {
 	
 	public static List<String> getIndexedTables(String indexColumnName) {
 
-		List<String> tableNames = null;
+		List<String> tableNames = new ArrayList<>();
+		
+		//Check if the index column exists to avoid NPE in the validator the first time the plug-in runs  
+		int no = DB.getSQLValue(null, "SELECT 1 FROM ad_column WHERE columnname =?", indexColumnName);
+		
+		if (no > 0) {
+			StringBuilder sql = new StringBuilder("SELECT AD_TABLE.tablename FROM AD_TABLE")
+					.append(" WHERE EXISTS (SELECT 1 FROM AD_COLUMN WHERE AD_COLUMN.AD_TABLE_ID = AD_TABLE.AD_TABLE_ID AND AD_COLUMN.")
+					.append(indexColumnName)
+					.append(" = 'Y' AND AD_COLUMN.IsActive='Y' AND ColumnSQL IS NULL)")
+					.append(" AND AD_TABLE.IsActive='Y' AND AD_TABLE.AD_Client_ID IN (0,?)");
 
-		StringBuilder sql = new StringBuilder("SELECT AD_TABLE.tablename FROM AD_TABLE")
-				.append(" WHERE EXISTS (SELECT 1 FROM AD_COLUMN WHERE AD_COLUMN.AD_TABLE_ID = AD_TABLE.AD_TABLE_ID AND AD_COLUMN.")
-				.append(indexColumnName)
-				.append(" = 'Y' AND AD_COLUMN.IsActive='Y' AND ColumnSQL IS NULL)")
-				.append(" AND AD_TABLE.IsActive='Y' AND AD_TABLE.AD_Client_ID IN (0,?)");
+			//Bring the table ids that are indexed
+			PreparedStatement pstmt = null;
+			ResultSet rs = null;
+			try {
+				pstmt = DB.prepareStatement(sql.toString(), null);
+				pstmt.setInt(1, Env.getAD_Client_ID(Env.getCtx()));
+				rs = pstmt.executeQuery();
 
-		//Bring the table ids that are indexed
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		try {
-			pstmt = DB.prepareStatement(sql.toString(), null);
-			pstmt.setInt(1, Env.getAD_Client_ID(Env.getCtx()));
-			rs = pstmt.executeQuery();
-
-			tableNames = new ArrayList<>();
-			while (!Thread.currentThread().isInterrupted() && rs.next()) {
-				tableNames.add(rs.getString(1));
-			}
-		} catch (Exception e) {
-			log.log(Level.SEVERE, sql.toString(), e);
-		} finally {
-			DB.close(rs, pstmt);
-			rs = null;
-			pstmt = null;
+				while (!Thread.currentThread().isInterrupted() && rs.next()) {
+					tableNames.add(rs.getString(1));
+				}
+			} catch (Exception e) {
+				log.log(Level.SEVERE, sql.toString(), e);
+			} finally {
+				DB.close(rs, pstmt);
+				rs = null;
+				pstmt = null;
+			}			
 		}
 
 		return tableNames;
