@@ -73,14 +73,14 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 
 	@Override
 	public void deleteDocument(String trxName) {
-		String sql = "TRUNCATE " + TextSearchValues.TS_TABLE_NAME;
-		DB.executeUpdateEx(sql, trxName);
+		String sql = "DELETE FROM " + TextSearchValues.TS_TABLE_NAME + "WHERE AD_Client_ID = ?" ;
+		DB.executeUpdateEx(sql, new Object[] {Env.getAD_Client_ID(Env.getCtx())}, trxName);
 	}
 
 	@Override
 	public void recreateDocument(String trxName) {
 		deleteDocument(trxName);
-		buildDocument(trxName);		
+		buildDocument(trxName);
 	}
 
 	@Override
