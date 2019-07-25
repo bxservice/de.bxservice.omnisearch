@@ -64,18 +64,21 @@ public class TSearchIndexEventHandler extends AbstractEventHandler {
 	@Override
 	protected void doHandleEvent(Event event) {
 		String type = event.getTopic();
+		PO po = getPO(event);
+		trxName = po.get_TrxName();
+		
+		if (!OmnisearchHelper.indexExist(OmnisearchAbstractFactory.TEXTSEARCH_INDEX, trxName))
+			return;
 
 		if (type.equals(IEventTopics.PO_AFTER_NEW)
 				|| type.equals(IEventTopics.PO_AFTER_CHANGE)
 				|| type.equals(IEventTopics.PO_AFTER_DELETE)) {
 
-			PO po = getPO(event);
 			if (po instanceof MColumn) {
 				if ((type.equals(IEventTopics.PO_AFTER_CHANGE) &&
 						po.is_ValueChanged(TextSearchValues.TS_INDEX_NAME)) || 
 						(po.get_ValueAsBoolean(TextSearchValues.TS_INDEX_NAME))) {
 					//If the Text search index flag is changed -> register/unregister the modified table
-					trxName = po.get_TrxName();
 					IEventManager tempManager = eventManager;
 					unbindEventManager(eventManager);
 					bindEventManager(tempManager);
