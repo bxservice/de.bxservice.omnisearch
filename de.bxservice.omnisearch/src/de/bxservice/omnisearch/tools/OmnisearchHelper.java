@@ -107,4 +107,17 @@ public class OmnisearchHelper {
 
 		return tableNames;
 	}
+	
+	public static void recreateDocument(String documentType) {
+		Thread recreateDocumentThread = new Thread(() -> {
+
+			if (documentType != null) {
+				OmnisearchAbstractFactory omnisearchFactory = OmnisearchFactoryProducer.getFactory(OmnisearchFactoryProducer.DOCUMENT_FACTORY);
+				OmnisearchDocument document = omnisearchFactory.getDocument(documentType);
+				document.recreateDocument(null);
+			}
+		});
+		recreateDocumentThread.setDaemon(true);
+		recreateDocumentThread.start();
+	}
 }
