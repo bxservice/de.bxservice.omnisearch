@@ -84,22 +84,21 @@ public class DPOmnisearchPanel extends DashboardPanel implements EventListener<E
 		searchTextbox.setSclass("z-textbox");
 		
 		cbAdvancedSearch.setLabel(Msg.getMsg(Env.getCtx(), "BXS_AdvancedQuery"));
-		Label label = new Label();
 		
-		if (!searchDocument.isValidDocument()) {
-			label.setValue(Msg.getMsg(Env.getCtx(), "BXS_NoIndex"));
-			searchTextbox.setReadonly(true);
-		} else {
-			resultListbox = new Listbox();
-			resultListbox.setMold("paging");
-			resultListbox.setPageSize(10);
-			resultListbox.setVflex("1");
-			resultListbox.setHflex("1");
-			resultListbox.addEventListener("onPaging", this);
+		resultListbox = new Listbox();
+		resultListbox.setMold("paging");
+		resultListbox.setPageSize(10);
+		resultListbox.setVflex("1");
+		resultListbox.setHflex("1");
+		resultListbox.addEventListener("onPaging", this);
 			
-			noResultsLabel = new Label();
+		noResultsLabel = new Label();
+		if (!searchDocument.isValidDocument()) {
+			noResultsLabel.setValue(Msg.getMsg(Env.getCtx(), "BXS_NoIndex"));
+			showResults(false);
+		} else {
 			noResultsLabel.setValue(Msg.getMsg(Env.getCtx(), "FindZeroRecords"));
-			noResultsLabel.setVisible(false);
+			showResults(true);
 		}
 
 		Vbox box = new Vbox();
@@ -108,13 +107,8 @@ public class DPOmnisearchPanel extends DashboardPanel implements EventListener<E
 		box.setStyle("margin:5px 5px;");
 		box.appendChild(searchTextbox);
 		box.appendChild(cbAdvancedSearch);
-		if (resultListbox != null) {
-			box.appendChild(resultListbox);
-			box.appendChild(noResultsLabel);
-		}
-		else
-			box.appendChild(label);
-
+		box.appendChild(resultListbox);
+		box.appendChild(noResultsLabel);
 		div.appendChild(box);
 
 		//  ActionListener
@@ -160,6 +154,7 @@ public class DPOmnisearchPanel extends DashboardPanel implements EventListener<E
 				resultListbox.setItemRenderer(renderer);
 		
 			} else {
+				noResultsLabel.setValue(Msg.getMsg(Env.getCtx(), "FindZeroRecords"));
 				showResults(false);
 			}
 		} else if ("onPaging".equals(e.getName()) && (e.getTarget() instanceof Listbox)) {
