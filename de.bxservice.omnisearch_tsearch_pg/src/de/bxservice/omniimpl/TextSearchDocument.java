@@ -39,6 +39,7 @@ import org.osgi.service.component.annotations.Component;
 
 import de.bxservice.omnisearch.tools.AbstractOmnisearchDocument;
 import de.bxservice.omnisearch.tools.OmnisearchDocument;
+import de.bxservice.omnisearch.tools.TextSearchResult;
 
 @Component(
 		service = OmnisearchDocument.class,
@@ -339,6 +340,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		DB.executeUpdateEx(sql, new Object[] {Env.getAD_Client_ID(Env.getCtx()), po.get_Table_ID(), po.get_IDOld()}, null);
 	}
 
+	@Override
 	public ArrayList<TextSearchResult> performQuery(String query, boolean isAdvanced) {
 
 		ArrayList<TextSearchResult> results = new ArrayList<>();
@@ -369,8 +371,8 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			while (rs.next())
 			{
 				result = new TextSearchResult();
-				result.setAd_Table_ID(rs.getInt(1));
-				result.setRecord_id(rs.getInt(2));
+				result.setAD_Table_ID(rs.getInt(1));
+				result.setRecord_ID(rs.getInt(2));
 				results.add(result);
 
 				if (i < 10) {
@@ -394,6 +396,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		return results;
 	}
 
+	@Override
 	public void setHeadline(TextSearchResult result, String query) {
 		
 		if (result.getHtmlHeadline() != null && !result.getHtmlHeadline().isEmpty())
@@ -401,11 +404,11 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 
 		StringBuilder sql = new StringBuilder();
 
-		if (indexQuery.get(result.getAd_Table_ID()) != null) {
-			sql.append(indexQuery.get(result.getAd_Table_ID()));
+		if (indexQuery.get(result.getAD_Table_ID()) != null) {
+			sql.append(indexQuery.get(result.getAD_Table_ID()));
 		} else {
 
-			ArrayList<Integer> columnIds = getIndexedColumns(result.getAd_Table_ID(), TextSearchValues.TS_INDEX_NAME);
+			ArrayList<Integer> columnIds = getIndexedColumns(result.getAD_Table_ID(), TextSearchValues.TS_INDEX_NAME);
 
 			if(columnIds == null || columnIds.isEmpty()) {
 				result.setHtmlHeadline("");
@@ -413,9 +416,9 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			}
 
 			sql.append("SELECT ts_headline(body, q) FROM (");			
-			sql.append(getIndexSql(columnIds, result.getAd_Table_ID()));
+			sql.append(getIndexSql(columnIds, result.getAD_Table_ID()));
 
-			indexQuery.put(result.getAd_Table_ID(), sql.toString());
+			indexQuery.put(result.getAD_Table_ID(), sql.toString());
 		}
 
 		//Bring the table ids that are indexed
@@ -426,7 +429,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			pstmt = DB.prepareStatement(sql.toString(), null);
 			pstmt.setString(1, query);
 			pstmt.setInt(2, Env.getAD_Client_ID(Env.getCtx()));
-			pstmt.setInt(3, result.getRecord_id());
+			pstmt.setInt(3, result.getRecord_ID());
 			rs = pstmt.executeQuery();
 
 			while (!Thread.currentThread().isInterrupted() && rs.next())
