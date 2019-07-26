@@ -27,9 +27,7 @@ import org.compiere.process.ProcessInfoParameter;
 import org.compiere.process.SvrProcess;
 
 import de.bxservice.omnisearch.tools.OmnisearchAbstractFactory;
-import de.bxservice.omnisearch.tools.OmnisearchDocument;
-import de.bxservice.omnisearch.tools.OmnisearchFactoryProducer;
-import de.bxservice.omnisearch.tools.OmnisearchIndex;
+import de.bxservice.omnisearch.tools.OmnisearchHelper;
 
 public class CreateIndexProcess extends SvrProcess {
 	
@@ -60,15 +58,11 @@ public class CreateIndexProcess extends SvrProcess {
 		//First populate the vector then create the index for faster performance
 		//Creates the document
 		log.log(Level.INFO, "Creating the document");
-		OmnisearchAbstractFactory omnisearchFactory = OmnisearchFactoryProducer.getFactory(OmnisearchFactoryProducer.DOCUMENT_FACTORY);
-		OmnisearchDocument document = omnisearchFactory.getDocument(indexType);
-		document.recreateDocument(get_TrxName());
+		OmnisearchHelper.recreateDocument(indexType, get_TrxName());
 		
 		//Creates the index
 		log.log(Level.INFO, "Creating the index");
-		omnisearchFactory = OmnisearchFactoryProducer.getFactory(OmnisearchFactoryProducer.INDEX_FACTORY);
-		OmnisearchIndex index = omnisearchFactory.getIndex(indexType);
-		index.recreateIndex(get_TrxName());
+		OmnisearchHelper.getIndex(indexType).recreateIndex(get_TrxName());
 		
         return "@OK@";
 	}
