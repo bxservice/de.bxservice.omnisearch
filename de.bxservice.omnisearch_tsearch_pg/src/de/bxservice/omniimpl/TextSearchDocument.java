@@ -32,6 +32,7 @@ import java.util.logging.Level;
 import org.compiere.model.MClient;
 import org.compiere.model.MColumn;
 import org.compiere.model.MTable;
+import org.compiere.model.PO;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.osgi.service.component.annotations.Component;
@@ -67,13 +68,34 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 	}
 
 	@Override
-	public void updateDocument(String trxName) {
+	public void updateDocument(PO po, boolean isNew, String trxName) {
+		if (po == null)
+			return;
 
+		ArrayList<Integer> columnIds = getIndexedColumns(po.get_Table_ID(), TextSearchValues.TS_INDEX_NAME);
+
+		//Insert 
+		if (isNew) {
+			insertIntoDocument(trxName, po.get_Table_ID(), po.get_ID(), columnIds);
+		} else { //Update
+			ArrayList<String> columnNames = getIndexedColumnNames(po.get_Table_ID(), TextSearchValues.TS_INDEX_NAME);
+			//Check if one of the indexed columns was modified
+			boolean indexChanged = false;
+			for (String columnName : columnNames) {
+				if (po.is_ValueChanged(columnName)) {
+					indexChanged = true;
+					break;
+				}
+			}
+
+			if (indexChanged)
+				updateRecord(po, columnIds, trxName);
+		}
 	}
 
 	@Override
 	public void deleteDocument(String trxName) {
-		String sql = "DELETE FROM " + TextSearchValues.TS_TABLE_NAME + "WHERE AD_Client_ID = ?" ;
+		String sql = "DELETE FROM " + TextSearchValues.TS_TABLE_NAME + " WHERE AD_Client_ID = ?" ;
 		DB.executeUpdateEx(sql, new Object[] {Env.getAD_Client_ID(Env.getCtx())}, trxName);
 	}
 
@@ -82,9 +104,9 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		deleteDocument(trxName);
 		buildDocument(trxName);
 	}
-
+	
 	@Override
-	public void insertIntoDocument(String trxName, int AD_Table_ID, ArrayList<Integer> columns) {
+	public void insertIntoDocument(String trxName, int AD_Table_ID, int Record_ID, ArrayList<Integer> columns) {
 		if (columns == null || columns.isEmpty())
 			return;
 
@@ -101,7 +123,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		insertQuery.deleteCharAt(insertQuery.length() -1); //remove last comma
 		insertQuery.append(") ");
 
-		String selectQuery = getSelectQuery(AD_Table_ID, columns, false);
+		String selectQuery = getSelectQuery(AD_Table_ID, columns, false, Record_ID > 0);
 
 		if (selectQuery == null) {
 			log.log(Level.WARNING, "A table with more than one key column cannot be indexed");
@@ -109,14 +131,26 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			insertQuery.append(selectQuery);
 			log.log(Level.FINEST, insertQuery.toString());
 
-			if (Env.getAD_Client_ID(Env.getCtx())  == 0)
-				DB.executeUpdateEx(insertQuery.toString(), trxName);
-			else
-				DB.executeUpdateEx(insertQuery.toString(), new Object[]{Env.getAD_Client_ID(Env.getCtx())},trxName);
+			Object[] params;
+			if (Record_ID > 0)
+				params = new Object[]{Env.getAD_Client_ID(Env.getCtx()), Record_ID};
+			else 
+				params = new Object[]{Env.getAD_Client_ID(Env.getCtx())};
+
+			DB.executeUpdateEx(insertQuery.toString(), params, trxName);
 		}
 	}
 
+	@Override
+	public void insertIntoDocument(String trxName, int AD_Table_ID, ArrayList<Integer> columns) {
+		insertIntoDocument(trxName, AD_Table_ID, -1, columns);
+	}
+	
 	private String getSelectQuery(int AD_Table_ID, ArrayList<Integer> columns, boolean isSearch) {
+		return getSelectQuery(AD_Table_ID, columns, isSearch, false);
+	}
+	
+	private String getSelectQuery(int AD_Table_ID, ArrayList<Integer> columns, boolean isSearch, boolean isSingleRecord) {
 
 		MTable table = MTable.get(Env.getCtx(), AD_Table_ID);
 		String mainTableAlias = "a";
@@ -190,15 +224,19 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 	    	selectQuery.append(",");
 	    	selectQuery.append("to_tsquery(?) q");
 	    	
-	    	selectQuery.append(" WHERE " + mainTableAlias + ".AD_Client_ID IN (0, ?)");
+	    	selectQuery.append(" WHERE " + mainTableAlias + ".AD_Client_ID = ?");
 	    	selectQuery.append(" AND ");
 	    	selectQuery.append(mainTableAlias + ".");
 			selectQuery.append(table.getKeyColumns()[0]); //Record_ID
 			selectQuery.append(" = ? ) AS foo WHERE body @@ q");
 		} else {
-			//If System -> all clients
-			if (Env.getAD_Client_ID(Env.getCtx()) != 0)
-				selectQuery.append(" WHERE " + mainTableAlias + ".AD_Client_ID IN (0, ?)");
+			selectQuery.append(" WHERE " + mainTableAlias + ".AD_Client_ID = ?");
+			if (isSingleRecord) {
+		    	selectQuery.append(" AND ");
+		    	selectQuery.append(mainTableAlias + ".");
+				selectQuery.append(table.getKeyColumns()[0]); //Record_ID
+				selectQuery.append(" = ? ");
+			}
 		}
 
 		return selectQuery.toString();
@@ -250,6 +288,8 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 
 		return joinClause.toString();
 	}
+	
+	
 
 	private String getTSConfig() {
 		return MClient.get(Env.getCtx()).getLanguage().getLocale().getDisplayLanguage(Locale.ENGLISH);
@@ -293,8 +333,10 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 	}
 
 	@Override
-	public void deleteFromDocument(String trxName) {
-
+	public void deleteFromDocument(PO po) {
+		String sql = "DELETE FROM " + TextSearchValues.TS_TABLE_NAME + " WHERE AD_Client_ID = ? "
+				+ " AND AD_Table_ID = ? AND Record_ID = ?";
+		DB.executeUpdateEx(sql, new Object[] {Env.getAD_Client_ID(Env.getCtx()), po.get_Table_ID(), po.get_IDOld()}, null);
 	}
 
 	public ArrayList<TextSearchResult> performQuery(String query, boolean isAdvanced) {
@@ -408,4 +450,79 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		return getSelectQuery(AD_Table_ID, columnIds, true);
 	}
 	
+	/**
+	 * 
+	 * @param po 
+	 * @param columnIDs -> columns that are indexed
+	 * @return A String with the value to be written in the BXS_omnTSVector column
+	 */
+	private void updateRecord(PO po, ArrayList<Integer> columnIDs, String trxName) {
+
+		StringBuilder updateQuery = new StringBuilder();
+		updateQuery.append("UPDATE ");
+		updateQuery.append(TextSearchValues.TS_TABLE_NAME);
+		updateQuery.append(" SET ");
+		updateQuery.append(TextSearchValues.INDEX_COLUMN);
+		
+		updateQuery.append(" = (");
+		MTable table = MTable.get(Env.getCtx(), po.get_Table_ID());
+		String mainTableAlias = "a";
+		
+		updateQuery.append("SELECT ");
+		updateQuery.append("to_tsvector(");
+		updateQuery.append("'" + getTSConfig() + "', "); //Language Parameter config
+
+		//Columns that want to be indexed
+		MColumn column = null;
+		//TableName, List of validations after the ON clause
+		ArrayList<String> joinClauses = null;
+		for (int i = 0; i < columnIDs.size(); i++) {
+			column = MColumn.get(Env.getCtx(), columnIDs.get(i));
+			String foreignTableName = column.getReferenceTableName();
+
+			if (foreignTableName != null) {
+				String foreignAlias = "a" + i;
+				MTable foreignTable = MTable.get(Env.getCtx(), foreignTableName);
+
+				if (joinClauses == null)
+					joinClauses = new ArrayList<>();
+
+				joinClauses.add(getJoinClause(foreignTable, mainTableAlias, foreignAlias, column));
+				updateQuery.append(getForeignValues(foreignTable, foreignAlias));
+
+			} else {
+				updateQuery.append("COALESCE(");
+				updateQuery.append(mainTableAlias);
+				updateQuery.append(".");
+				updateQuery.append(column.getColumnName());
+			}
+
+			if (i < columnIDs.size() -1)
+				updateQuery.append(",'') || ' ' || "); //space between words
+			else
+				updateQuery.append(",'') ");
+		}
+		updateQuery.append(") ");
+
+		updateQuery.append(" FROM ");
+		updateQuery.append(table.getTableName());
+		updateQuery.append(" " + mainTableAlias);
+
+		if (joinClauses != null && joinClauses.size() > 0) {
+			for (String joinClause : joinClauses)
+				updateQuery.append(joinClause);
+		}
+
+		updateQuery.append(" WHERE " + mainTableAlias + ".AD_Client_ID = ?");
+		updateQuery.append(" AND ");
+		updateQuery.append(mainTableAlias + ".");
+		updateQuery.append(table.getKeyColumns()[0]); //Record_ID
+		updateQuery.append(" = ? )");
+		
+		updateQuery.append(" WHERE AD_Table_ID = ? AND Record_ID = ?");
+		
+		DB.executeUpdateEx(updateQuery.toString(), 
+				new Object[] {Env.getAD_Client_ID(Env.getCtx()), po.get_ID(), po.get_Table_ID(), po.get_ID()}, 
+				trxName);
+	}
 }

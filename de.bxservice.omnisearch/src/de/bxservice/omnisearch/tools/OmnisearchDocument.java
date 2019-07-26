@@ -23,13 +23,16 @@ package de.bxservice.omnisearch.tools;
 
 import java.util.ArrayList;
 
+import org.compiere.model.PO;
+
 public interface OmnisearchDocument {
 	
 	void buildDocument(String trxName);
-	void updateDocument(String trxName);
+	void updateDocument(PO po, boolean isNew, String trxName);
 	void deleteDocument(String trxName);
 	void recreateDocument(String trxName);
+	void insertIntoDocument(String trxName, int AD_Table_ID, int Record_ID, ArrayList<Integer> columns);
 	void insertIntoDocument(String trxName, int AD_Table_ID, ArrayList<Integer> columns);
-	void deleteFromDocument(String trxName);
+	void deleteFromDocument(PO po);
 	boolean isValidDocument();
 }

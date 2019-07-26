@@ -22,13 +22,11 @@
 package de.bxservice.omnisearch.validator;
 
 import java.util.List;
-import java.util.logging.Level;
 
 import org.adempiere.base.event.AbstractEventHandler;
 import org.adempiere.base.event.IEventManager;
 import org.adempiere.base.event.IEventTopics;
 import org.compiere.model.MColumn;
-import org.compiere.model.MSysConfig;
 import org.compiere.model.PO;
 import org.compiere.util.CLogger;
 import org.osgi.service.event.Event;
@@ -67,31 +65,20 @@ public class TSearchIndexEventHandler extends AbstractEventHandler {
 		PO po = getPO(event);
 		trxName = po.get_TrxName();
 		
-		if (!OmnisearchHelper.indexExist(OmnisearchAbstractFactory.TEXTSEARCH_INDEX, trxName))
-			return;
-
-		if (type.equals(IEventTopics.PO_AFTER_NEW)
-				|| type.equals(IEventTopics.PO_AFTER_CHANGE)
-				|| type.equals(IEventTopics.PO_AFTER_DELETE)) {
-
-			if (po instanceof MColumn) {
-				if ((type.equals(IEventTopics.PO_AFTER_CHANGE) &&
-						po.is_ValueChanged(TextSearchValues.TS_INDEX_NAME)) || 
-						(po.get_ValueAsBoolean(TextSearchValues.TS_INDEX_NAME))) {
-					//If the Text search index flag is changed -> register/unregister the modified table
-					IEventManager tempManager = eventManager;
-					unbindEventManager(eventManager);
-					bindEventManager(tempManager);
-				}
+		if (po instanceof MColumn) {
+			if ((type.equals(IEventTopics.PO_AFTER_CHANGE) &&
+					po.is_ValueChanged(TextSearchValues.TS_INDEX_NAME)) || 
+					(po.get_ValueAsBoolean(TextSearchValues.TS_INDEX_NAME))) {
+				//If the Text search index flag is changed -> register/unregister the modified table
+				IEventManager tempManager = eventManager;
+				unbindEventManager(eventManager);
+				bindEventManager(tempManager);
 			}
-
-			if (MSysConfig.getBooleanValue(OmnisearchHelper.MSYSCONFIG_AUTOMATIC_RECREATE, false)) {
-				if (log.isLoggable(Level.INFO))
-					log.info("Recreating index po : " + po + "type: "+type);
-
-				OmnisearchHelper.recreateIndex(OmnisearchAbstractFactory.TEXTSEARCH_INDEX);				
-			}
-		}
+		} else if (type.equals(IEventTopics.PO_AFTER_DELETE))
+			OmnisearchHelper.deleteFromDocument(OmnisearchAbstractFactory.TEXTSEARCH_INDEX, po);
+		else 
+			OmnisearchHelper.updateDocument(OmnisearchAbstractFactory.TEXTSEARCH_INDEX, po, 
+					type.equals(IEventTopics.PO_AFTER_NEW));
 	}
 
 }

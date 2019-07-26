@@ -123,4 +123,35 @@ public abstract class AbstractOmnisearchDocument implements OmnisearchDocument {
 		return columnIds;
 	}
 	
+	public ArrayList<String> getIndexedColumnNames(int AD_Table_ID, String indexColumnName) {
+
+		ArrayList<String> columnNames = null;
+
+		String sql = "SELECT AD_COLUMN.columnname FROM AD_TABLE "
+				+ " JOIN AD_COLUMN ON AD_COLUMN.AD_TABLE_ID = AD_TABLE.AD_TABLE_ID AND AD_COLUMN." 
+				+ indexColumnName + " = 'Y' "
+				+ " WHERE AD_TABLE.IsActive='Y' AND AD_COLUMN.IsActive='Y' AND AD_TABLE.AD_Table_ID = ?";
+
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try {
+			pstmt = DB.prepareStatement(sql, null);
+			pstmt.setInt(1, AD_Table_ID);
+			rs = pstmt.executeQuery();
+
+			columnNames = new ArrayList<>();
+			while (!Thread.currentThread().isInterrupted() && rs.next()) {
+				columnNames.add(rs.getString(1));
+			}
+		} catch (Exception e) {
+			log.log(Level.SEVERE, sql.toString(), e);
+		} finally {
+			DB.close(rs, pstmt);
+			rs = null;
+			pstmt = null;
+		}
+
+		return columnNames;
+	}
+	
 }

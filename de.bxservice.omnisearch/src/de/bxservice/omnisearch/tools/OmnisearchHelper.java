@@ -30,6 +30,7 @@ import java.util.logging.Level;
 import org.compiere.model.MPInstance;
 import org.compiere.model.MPInstancePara;
 import org.compiere.model.MProcess;
+import org.compiere.model.PO;
 import org.compiere.process.ProcessInfo;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
@@ -41,7 +42,6 @@ public class OmnisearchHelper {
 	
 	/**	Logger			*/
 	private static CLogger log = CLogger.getCLogger(OmnisearchHelper.class);
-	public static String MSYSCONFIG_AUTOMATIC_RECREATE = "OMNISEARCH_AUTOMATIC_RECREATE_INDEX";
 	
 	public static void recreateIndex(String indexType) {
 		
@@ -104,21 +104,35 @@ public class OmnisearchHelper {
 		return tableNames;
 	}
 	
-	public static void recreateDocument(String documentType) {
-		Thread recreateDocumentThread = new Thread(() -> {
-
-			if (documentType != null) {
-				OmnisearchAbstractFactory omnisearchFactory = OmnisearchFactoryProducer.getFactory(OmnisearchFactoryProducer.DOCUMENT_FACTORY);
-				OmnisearchDocument document = omnisearchFactory.getDocument(documentType);
-				document.recreateDocument(null);
-			}
-		});
-		recreateDocumentThread.setDaemon(true);
-		recreateDocumentThread.start();
+	public static void recreateDocument(String documentType, String trxName) {
+		if (documentType != null)
+			getDocument(documentType).recreateDocument(trxName);
 	}
 
 	//Check if the index column exists to avoid NPE in the validator the first time the plug-in runs
 	public static boolean indexExist(String indexType, String trxName) {
 		return DB.getSQLValue(trxName, "SELECT 1 FROM ad_column WHERE columnname =?", indexType) > 0;
+	}
+	
+	public static void updateDocument(String documentType, PO po, boolean isNew) {
+		Thread recreateDocumentThread = new Thread(() -> {
+			getDocument(documentType).updateDocument(po, isNew, null);
+		});
+		recreateDocumentThread.setDaemon(true);
+		recreateDocumentThread.start();
+	}
+	
+	public static void deleteFromDocument(String documentType, PO po) {
+		getDocument(documentType).deleteFromDocument(po);
+	}
+	
+	public static OmnisearchDocument getDocument(String documentType) {
+		OmnisearchAbstractFactory omnisearchFactory = OmnisearchFactoryProducer.getFactory(OmnisearchFactoryProducer.DOCUMENT_FACTORY);
+		return omnisearchFactory.getDocument(documentType);
+	}
+	
+	public static OmnisearchIndex getIndex(String indexType) {
+		OmnisearchAbstractFactory omnisearchFactory = OmnisearchFactoryProducer.getFactory(OmnisearchFactoryProducer.INDEX_FACTORY);
+		return omnisearchFactory.getIndex(indexType);
 	}
 }
