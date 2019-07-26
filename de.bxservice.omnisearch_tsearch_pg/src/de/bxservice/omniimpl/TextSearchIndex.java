@@ -21,7 +21,6 @@
 **********************************************************************/
 package de.bxservice.omniimpl;
 
-import org.compiere.util.DB;
 import org.osgi.service.component.annotations.Component;
 
 import de.bxservice.omnisearch.tools.OmnisearchIndex;
@@ -30,30 +29,26 @@ import de.bxservice.omnisearch.tools.OmnisearchIndex;
 		service = OmnisearchIndex.class,
 		property= {"indexType:String=TS"}
 )
+/**
+ * The methods in this class are empty because the index is created
+ * within a 2pack and to avoid future problems the postgreSQL index
+ * should not be deleted.
+ * 
+ * This methods might be more appropriate for other tools that require to 
+ * create/modify the indexes in special ways
+ */
 public class TextSearchIndex implements OmnisearchIndex {
 
 	@Override
 	public void createIndex(String trxName) {
-		StringBuilder createStatement = new StringBuilder("CREATE INDEX ");
-		createStatement.append(TextSearchValues.INDEX_NAME);
-		createStatement.append(" ON ");
-		createStatement.append(TextSearchValues.TS_TABLE_NAME);
-		createStatement.append(" USING gin(");
-		createStatement.append(TextSearchValues.INDEX_COLUMN);
-		createStatement.append(")");
-				
-		DB.executeUpdateEx(createStatement.toString(), trxName);
 	}
 
 	@Override
 	public void updateIndex(String trxName) {
-		
 	}
 
 	@Override
 	public void dropIndex(String trxName) {
-		String dropStatement = "DROP INDEX IF EXISTS " + TextSearchValues.INDEX_NAME;
-		DB.executeUpdateEx(dropStatement, trxName);
 	}
 
 	@Override
