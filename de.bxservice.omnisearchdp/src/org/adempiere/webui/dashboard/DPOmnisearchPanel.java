@@ -38,8 +38,9 @@ import org.zkoss.zul.Vbox;
 import org.zkoss.zul.Vlayout;
 import org.zkoss.zul.event.PagingEvent;
 
-import de.bxservice.omniimpl.TextSearchDocument;
-import de.bxservice.omniimpl.TextSearchResult;
+import de.bxservice.omnisearch.tools.OmnisearchDocument;
+import de.bxservice.omnisearch.tools.OmnisearchHelper;
+import de.bxservice.omnisearch.tools.TextSearchResult;
 
 
 public class DPOmnisearchPanel extends DashboardPanel implements EventListener<Event> {
@@ -48,9 +49,8 @@ public class DPOmnisearchPanel extends DashboardPanel implements EventListener<E
 	 * 
 	 */
 	private static final long serialVersionUID = -8116512057982561129L;
-	
-	
-	private TextSearchDocument searchDocument = new TextSearchDocument();
+
+	private OmnisearchDocument document;
 	private ArrayList<TextSearchResult> results;
 	
 	private OmnisearchItemRenderer renderer;
@@ -64,6 +64,7 @@ public class DPOmnisearchPanel extends DashboardPanel implements EventListener<E
 	public DPOmnisearchPanel()
 	{
 		super();
+		document = OmnisearchHelper.getDocument();
 		
 		this.setSclass("dashboard-widget-max");
 		this.setHeight("500px");
@@ -93,7 +94,7 @@ public class DPOmnisearchPanel extends DashboardPanel implements EventListener<E
 		resultListbox.addEventListener("onPaging", this);
 			
 		noResultsLabel = new Label();
-		if (!searchDocument.isValidDocument()) {
+		if (!document.isValidDocument()) {
 			noResultsLabel.setValue(Msg.getMsg(Env.getCtx(), "BXS_NoIndex"));
 			showResults(false);
 		} else {
@@ -144,7 +145,7 @@ public class DPOmnisearchPanel extends DashboardPanel implements EventListener<E
 				setModel(new ArrayList<TextSearchResult>());
 			}
 			
-			results = searchDocument.performQuery(textbox.getText(), cbAdvancedSearch.isChecked());
+			results = document.performQuery(textbox.getText(), cbAdvancedSearch.isChecked());
 
 			if (results != null && results.size() > 0) {
 				
@@ -169,7 +170,7 @@ public class DPOmnisearchPanel extends DashboardPanel implements EventListener<E
 	            	end = results.size();
 				
 	            for(int i = start; i < end; i++)
-					searchDocument.setHeadline(results.get(i), searchTextbox.getText());
+	            	document.setHeadline(results.get(i), searchTextbox.getText());
 	            
 				setModel(results);
 			}	

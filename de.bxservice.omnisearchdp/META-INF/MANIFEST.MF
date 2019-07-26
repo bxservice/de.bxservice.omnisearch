@@ -6,8 +6,7 @@ Bundle-Version: 1.0.0.qualifier
 Fragment-Host: org.adempiere.ui.zk
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.adempiere.plugin.utils;bundle-version="4.1.0",
- de.bxservice.omnisearch;bundle-version="1.0.0",
- de.bxservice.omnisearch_tsearch_pg;bundle-version="1.0.0"
+ de.bxservice.omnisearch;bundle-version="1.0.0"
 Export-Package: org.adempiere.webui.dashboard
 Bundle-ClassPath: zul/,
  .

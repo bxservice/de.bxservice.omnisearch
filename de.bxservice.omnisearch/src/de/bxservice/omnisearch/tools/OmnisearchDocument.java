@@ -27,6 +27,7 @@ import org.compiere.model.PO;
 
 public interface OmnisearchDocument {
 	
+	//Document setup
 	void buildDocument(String trxName);
 	void updateDocument(PO po, boolean isNew, String trxName);
 	void deleteDocument(String trxName);
@@ -35,4 +36,8 @@ public interface OmnisearchDocument {
 	void insertIntoDocument(String trxName, int AD_Table_ID, ArrayList<Integer> columns);
 	void deleteFromDocument(PO po);
 	boolean isValidDocument();
+	
+	//Queries
+	ArrayList<TextSearchResult> performQuery(String query, boolean isAdvanced);
+	void setHeadline(TextSearchResult result, String query);
 }

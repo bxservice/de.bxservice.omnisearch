@@ -19,7 +19,7 @@
 * Contributors:                                                       *
 * - Diego Ruiz - BX Service GmbH                                      *
 **********************************************************************/
-package de.bxservice.omniimpl;
+package de.bxservice.omnisearch.tools;
 
 import org.compiere.model.MTable;
 import org.compiere.model.MUserDefWin;
@@ -31,23 +31,23 @@ import org.compiere.util.Util;
 public class TextSearchResult {
 	
 	private int AD_Table_ID;
-	private int record_id;
+	private int Record_ID;
 	private String htmlHeadline;
 	
-	public int getAd_Table_ID() {
+	public int getAD_Table_ID() {
 		return AD_Table_ID;
 	}
 	
-	public void setAd_Table_ID(int ad_table_id) {
-		this.AD_Table_ID = ad_table_id;
+	public void setAD_Table_ID(int AD_Table_ID) {
+		this.AD_Table_ID = AD_Table_ID;
 	}
 	
-	public int getRecord_id() {
-		return record_id;
+	public int getRecord_ID() {
+		return Record_ID;
 	}
 	
-	public void setRecord_id(int record_id) {
-		this.record_id = record_id;
+	public void setRecord_ID(int Record_ID) {
+		this.Record_ID = Record_ID;
 	}
 	
 	public String getHtmlHeadline() {
@@ -60,7 +60,7 @@ public class TextSearchResult {
 	
 	public String getLabel() {
 		String windowName;
-		int windowID = Env.getZoomWindowID(getAd_Table_ID(), getRecord_id());
+		int windowID = Env.getZoomWindowID(getAD_Table_ID(), getRecord_ID());
 		
 		MWindow win = MWindow.get(Env.getCtx(), windowID);
 		MUserDefWin userDef = MUserDefWin.getBestMatch(Env.getCtx(), windowID);
@@ -70,8 +70,8 @@ public class TextSearchResult {
 			windowName = win.get_Translation("Name");
 		}
 		
-		MTable table = MTable.get(Env.getCtx(), getAd_Table_ID());
-		PO po = table.getPO(getRecord_id(), null);
+		MTable table = MTable.get(Env.getCtx(), getAD_Table_ID());
+		PO po = table.getPO(getRecord_ID(), null);
 
 		String titleLogic = win.getTitleLogic();
 		StringBuilder recordIdentifier = new StringBuilder("");

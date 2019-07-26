@@ -35,7 +35,7 @@ import org.zkoss.zul.Listitem;
 import org.zkoss.zul.ListitemRenderer;
 import org.zkoss.zul.Vlayout;
 
-import de.bxservice.omniimpl.TextSearchResult;
+import de.bxservice.omnisearch.tools.TextSearchResult;
 
 public class OmnisearchItemRenderer implements ListitemRenderer<TextSearchResult>, EventListener<Event>  {
 
@@ -88,7 +88,7 @@ public class OmnisearchItemRenderer implements ListitemRenderer<TextSearchResult
 	public void onEvent(Event e) throws Exception {
 		if (Events.ON_CLICK.equals(e.getName()) && (e.getTarget() instanceof Html)) {
 			TextSearchResult row = mapCellColumn.get(e.getTarget());
-			zoom(row.getRecord_id(), row.getAd_Table_ID());
+			zoom(row.getRecord_ID(), row.getAD_Table_ID());
 		}
 	} 
 

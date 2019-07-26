@@ -30,6 +30,7 @@ import java.util.logging.Level;
 import org.compiere.model.MPInstance;
 import org.compiere.model.MPInstancePara;
 import org.compiere.model.MProcess;
+import org.compiere.model.MSysConfig;
 import org.compiere.model.PO;
 import org.compiere.process.ProcessInfo;
 import org.compiere.util.CLogger;
@@ -42,6 +43,7 @@ public class OmnisearchHelper {
 	
 	/**	Logger			*/
 	private static CLogger log = CLogger.getCLogger(OmnisearchHelper.class);
+	public static final String OMNISEARCH_INDEX = "OMNISEARCH_INDEX";
 	
 	public static void recreateIndex(String indexType) {
 		
@@ -124,6 +126,10 @@ public class OmnisearchHelper {
 	
 	public static void deleteFromDocument(String documentType, PO po) {
 		getDocument(documentType).deleteFromDocument(po);
+	}
+	
+	public static OmnisearchDocument getDocument() {
+		return getDocument(MSysConfig.getValue(OMNISEARCH_INDEX, OmnisearchAbstractFactory.TEXTSEARCH_INDEX));
 	}
 	
 	public static OmnisearchDocument getDocument(String documentType) {
