@@ -73,7 +73,7 @@ public class OmnisearchHelper {
 		recreateIndexThread.start();
 	}
 	
-	public static List<String> getIndexedTables(String indexColumnName, String trxName) {
+	public static List<String> getIndexedTableNames(String indexColumnName, String trxName) {
 		List<String> tableNames = new ArrayList<>();
 
 		if (indexExist(indexColumnName, trxName)) {
