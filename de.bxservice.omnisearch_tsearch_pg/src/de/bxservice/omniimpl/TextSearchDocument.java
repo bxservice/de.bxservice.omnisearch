@@ -350,8 +350,8 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		sql.append("FROM " + TextSearchValues.TS_TABLE_NAME);
 		sql.append(" WHERE bxs_omntsvector @@ ");
 
-		if (isAdvanced)
-			sql.append("to_tsquery('" + query.replace(" ", "&") + "') ");
+		if (isAdvanced) 
+			sql.append("to_tsquery('" + convertQueryString(query) + "') ");
 		else
 			sql.append("plainto_tsquery('" + query + "') ");
 
@@ -426,7 +426,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		try
 		{
 			pstmt = DB.prepareStatement(sql.toString(), null);
-			pstmt.setString(1, query.replace(" ", "&"));
+			pstmt.setString(1, convertQueryString(query));
 			pstmt.setInt(2, Env.getAD_Client_ID(Env.getCtx()));
 			pstmt.setInt(3, result.getRecord_ID());
 			rs = pstmt.executeQuery();
@@ -446,6 +446,19 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			rs = null;
 			pstmt = null;
 		}
+	}
+	
+	/**
+	 * Converts a String to a valid to_Tsquery String
+	 * @param queryString
+	 * @return
+	 */
+	private String convertQueryString(String queryString) {
+		queryString = queryString.trim(); //(Remove leading and trailing spaces
+		if (!queryString.contains("&"))
+			queryString =  queryString.replace(" ", "&"); //If the query does not include &, handle spaces as & strings
+		
+		return queryString;
 	}
 	
 	private String getIndexSql(ArrayList<Integer> columnIds, int AD_Table_ID) {
