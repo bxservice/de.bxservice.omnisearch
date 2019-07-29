@@ -46,7 +46,7 @@ public class TSearchIndexEventHandler extends AbstractEventHandler {
 	protected void initialize() {
 		log.warning("");
 
-		List<String> indexedTables = OmnisearchHelper.getIndexedTables(TextSearchValues.TS_INDEX_NAME, trxName);
+		List<String> indexedTables = OmnisearchHelper.getIndexedTableNames(TextSearchValues.TS_INDEX_NAME, trxName);
 
 		for (String tableName : indexedTables) {
 			registerTableEvent(IEventTopics.PO_AFTER_NEW, tableName);

@@ -45,6 +45,11 @@ public abstract class AbstractOmnisearchDocument implements OmnisearchDocument {
 		return indexedTables;
 	}
 	
+	/**
+	 * Remove a hashmap with tables and its indexed columns
+	 * @param trxName
+	 * @param indexColumnName
+	 */
 	private void getIndexedTables(String trxName, String indexColumnName) {
 		StringBuilder sql = new StringBuilder("SELECT AD_TABLE.AD_TABLE_ID, AD_COLUMN.AD_COLUMN_ID FROM AD_TABLE")
 		.append(" JOIN AD_COLUMN ON AD_COLUMN.AD_TABLE_ID = AD_TABLE.AD_TABLE_ID AND AD_COLUMN."+ indexColumnName +" = 'Y'")
