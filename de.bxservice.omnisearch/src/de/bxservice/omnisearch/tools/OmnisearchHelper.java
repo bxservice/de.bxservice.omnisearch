@@ -117,11 +117,7 @@ public class OmnisearchHelper {
 	}
 	
 	public static void updateDocument(String documentType, PO po, boolean isNew) {
-		Thread recreateDocumentThread = new Thread(() -> {
-			getDocument(documentType).updateDocument(po, isNew, null);
-		});
-		recreateDocumentThread.setDaemon(true);
-		recreateDocumentThread.start();
+		getDocument(documentType).updateDocument(po, isNew, null);
 	}
 	
 	public static void deleteFromDocument(String documentType, PO po) {
