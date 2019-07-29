@@ -224,7 +224,6 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		if (isSearch) {
 	    	selectQuery.append(",");
 	    	selectQuery.append("to_tsquery(?) q");
-	    	
 	    	selectQuery.append(" WHERE " + mainTableAlias + ".AD_Client_ID = ?");
 	    	selectQuery.append(" AND ");
 	    	selectQuery.append(mainTableAlias + ".");
@@ -351,8 +350,8 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		sql.append("FROM " + TextSearchValues.TS_TABLE_NAME);
 		sql.append(" WHERE bxs_omntsvector @@ ");
 
-		if(isAdvanced)
-			sql.append("to_tsquery('" + query + "') ");
+		if (isAdvanced)
+			sql.append("to_tsquery('" + query.replace(" ", "&") + "') ");
 		else
 			sql.append("plainto_tsquery('" + query + "') ");
 
@@ -427,7 +426,7 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		try
 		{
 			pstmt = DB.prepareStatement(sql.toString(), null);
-			pstmt.setString(1, query);
+			pstmt.setString(1, query.replace(" ", "&"));
 			pstmt.setInt(2, Env.getAD_Client_ID(Env.getCtx()));
 			pstmt.setInt(3, result.getRecord_ID());
 			rs = pstmt.executeQuery();
