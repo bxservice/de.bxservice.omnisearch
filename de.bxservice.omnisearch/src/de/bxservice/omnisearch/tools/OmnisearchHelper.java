@@ -117,7 +117,7 @@ public class OmnisearchHelper {
 	}
 	
 	public static void updateDocument(String documentType, PO po, boolean isNew) {
-		getDocument(documentType).updateDocument(po, isNew, null);
+		getDocument(documentType).updateDocument(po, isNew, po.get_TrxName());
 	}
 	
 	public static void deleteFromDocument(String documentType, PO po) {
