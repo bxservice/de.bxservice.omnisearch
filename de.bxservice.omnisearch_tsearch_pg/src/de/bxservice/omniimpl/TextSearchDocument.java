@@ -29,6 +29,7 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
+import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.MClient;
 import org.compiere.model.MColumn;
 import org.compiere.model.MTable;
@@ -96,8 +97,14 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 
 	@Override
 	public void deleteDocument(String trxName) {
-		String sql = "DELETE FROM " + TextSearchValues.TS_TABLE_NAME + " WHERE AD_Client_ID = ?" ;
-		DB.executeUpdateEx(sql, new Object[] {Env.getAD_Client_ID(Env.getCtx())}, trxName);
+		// If run from System -> Deletes all clients
+		if (Env.getAD_Client_ID(Env.getCtx()) == 0) {
+			String sql = "TRUNCATE " + TextSearchValues.TS_TABLE_NAME;
+			DB.executeUpdateEx(sql, trxName);
+		} else {
+			String sql = "DELETE FROM " + TextSearchValues.TS_TABLE_NAME + " WHERE AD_Client_ID = ?";
+			DB.executeUpdateEx(sql, new Object[] {Env.getAD_Client_ID(Env.getCtx())}, trxName);
+		}
 	}
 
 	@Override
@@ -130,15 +137,19 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			log.log(Level.WARNING, "A table with more than one key column cannot be indexed");
 		} else {
 			insertQuery.append(selectQuery);
-			log.log(Level.FINEST, insertQuery.toString());
 
-			Object[] params;
+			Object[] params = null;
 			if (Record_ID > 0)
 				params = new Object[]{Env.getAD_Client_ID(Env.getCtx()), Record_ID};
-			else 
+			else if (Env.getAD_Client_ID(Env.getCtx()) > 0)
 				params = new Object[]{Env.getAD_Client_ID(Env.getCtx())};
 
-			DB.executeUpdateEx(insertQuery.toString(), params, trxName);
+			try {
+				DB.executeUpdateEx(insertQuery.toString(), params, trxName);
+			} catch (Exception e) {
+				log.log(Level.SEVERE, insertQuery.toString());
+				throw new AdempiereException(e);
+			}
 		}
 	}
 
@@ -230,13 +241,23 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			selectQuery.append(table.getKeyColumns()[0]); //Record_ID
 			selectQuery.append(" = ? ) AS foo WHERE body @@ q");
 		} else {
-			selectQuery.append(" WHERE " + mainTableAlias + ".AD_Client_ID = ?");
-			if (isSingleRecord) {
-		    	selectQuery.append(" AND ");
-		    	selectQuery.append(mainTableAlias + ".");
-				selectQuery.append(table.getKeyColumns()[0]); //Record_ID
-				selectQuery.append(" = ? ");
+			String whereClause = null;
+			//If System -> All clients
+			if (Env.getAD_Client_ID(Env.getCtx()) != 0) {
+				whereClause = " WHERE " + mainTableAlias + ".AD_Client_ID = ? ";
 			}
+			if (isSingleRecord) {
+				if (whereClause != null)
+					whereClause = whereClause + " AND ";
+				else
+					whereClause = " WHERE ";
+
+				whereClause = whereClause + mainTableAlias + "." 
+						+ table.getKeyColumns()[0] //Record_ID
+								+ " = ? ";
+			}
+			if (whereClause != null)
+				selectQuery.append(whereClause);
 		}
 
 		return selectQuery.toString();
