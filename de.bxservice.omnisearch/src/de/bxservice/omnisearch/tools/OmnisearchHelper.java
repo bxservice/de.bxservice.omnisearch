@@ -24,9 +24,12 @@ package de.bxservice.omnisearch.tools;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
+import org.compiere.model.MColumn;
 import org.compiere.model.MPInstance;
 import org.compiere.model.MPInstancePara;
 import org.compiere.model.MProcess;
@@ -35,6 +38,7 @@ import org.compiere.model.PO;
 import org.compiere.process.ProcessInfo;
 import org.compiere.util.CLogger;
 import org.compiere.util.DB;
+import org.compiere.util.DisplayType;
 import org.compiere.util.Env;
 import org.compiere.util.Msg;
 import org.compiere.util.Trx;
@@ -106,6 +110,54 @@ public class OmnisearchHelper {
 		return tableNames;
 	}
 	
+	public static Set<String> getForeignTableNames(String indexColumnName, String trxName) {
+		Set<String> tableNames = new HashSet<>();
+
+		if (indexExist(indexColumnName, trxName)) {
+			String sql = "SELECT AD_COLUMN_ID FROM AD_COLUMN" + 
+					" WHERE AD_COLUMN." + indexColumnName + 
+					" = 'Y' AND AD_COLUMN.IsActive='Y' AND ColumnSQL IS NULL" + 
+					" AND AD_REFERENCE_ID IN (?,?,?,?,?,?,?,?,?,?)";
+			
+			//Bring the column ids from the FK
+			PreparedStatement pstmt = null;
+			ResultSet rs = null;
+			try {
+				pstmt = DB.prepareStatement(sql.toString(), trxName);
+				pstmt.setInt(1, DisplayType.TableDir);
+				pstmt.setInt(2, DisplayType.Search);
+				pstmt.setInt(3, DisplayType.Table);
+				pstmt.setInt(4, DisplayType.List);
+				pstmt.setInt(5, DisplayType.Payment);
+				pstmt.setInt(6, DisplayType.Location);
+				pstmt.setInt(7, DisplayType.Account);
+				pstmt.setInt(8, DisplayType.Locator);
+				pstmt.setInt(9, DisplayType.PAttribute);
+				pstmt.setInt(10, DisplayType.Assignment);
+				rs = pstmt.executeQuery();
+
+				MColumn column = null;
+				while (!Thread.currentThread().isInterrupted() && rs.next()) {
+					column = MColumn.get(Env.getCtx(), rs.getInt(1));
+					
+					if (column != null) {
+						String tableName = column.getReferenceTableName();
+						if (tableName != null)
+							tableNames.add(tableName);
+					}
+				}
+			} catch (Exception e) {
+				log.log(Level.SEVERE, sql.toString(), e);
+			} finally {
+				DB.close(rs, pstmt);
+				rs = null;
+				pstmt = null;
+			}			
+		}
+
+		return tableNames;
+	}
+	
 	public static void recreateDocument(String documentType, String trxName) {
 		if (documentType != null)
 			getDocument(documentType).recreateDocument(trxName);
@@ -122,6 +174,10 @@ public class OmnisearchHelper {
 	
 	public static void deleteFromDocument(String documentType, PO po) {
 		getDocument(documentType).deleteFromDocument(po);
+	}
+	
+	public static void updateParent(String documentType, PO po) {
+		getDocument(documentType).updateParent(po);
 	}
 	
 	public static OmnisearchDocument getDocument() {

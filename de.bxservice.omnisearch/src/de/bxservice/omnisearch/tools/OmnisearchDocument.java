@@ -30,6 +30,7 @@ public interface OmnisearchDocument {
 	//Document setup
 	void buildDocument(String trxName);
 	void updateDocument(PO po, boolean isNew, String trxName);
+	void updateParent(PO po);
 	void deleteDocument(String trxName);
 	void recreateDocument(String trxName);
 	void insertIntoDocument(String trxName, int AD_Table_ID, int Record_ID, ArrayList<Integer> columns);
