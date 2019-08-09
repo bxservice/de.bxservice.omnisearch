@@ -22,6 +22,7 @@
 package de.bxservice.omnisearch.validator;
 
 import java.util.List;
+import java.util.Set;
 
 import org.adempiere.base.event.AbstractEventHandler;
 import org.adempiere.base.event.IEventManager;
@@ -40,7 +41,8 @@ public class TSearchIndexEventHandler extends AbstractEventHandler {
 	/**	Logger			*/
 	private static CLogger log = CLogger.getCLogger(TSearchIndexEventHandler.class);
 	
-	private String trxName = null;
+	private String       trxName      = null;
+	private Set<String>  fkTableNames = null;
 
 	@Override
 	protected void initialize() {
@@ -53,7 +55,16 @@ public class TSearchIndexEventHandler extends AbstractEventHandler {
 			registerTableEvent(IEventTopics.PO_AFTER_CHANGE, tableName);
 			registerTableEvent(IEventTopics.PO_AFTER_DELETE, tableName);
 		}
-		
+
+		fkTableNames = OmnisearchHelper.getForeignTableNames(TextSearchValues.TS_INDEX_NAME, trxName);
+		//Index the FK tables
+		for (String tableName : fkTableNames) {
+			//Don't duplicate the Event for the same table
+			if (!indexedTables.contains(tableName))
+				registerTableEvent(IEventTopics.PO_AFTER_CHANGE, tableName);
+		}
+
+		//Handle the changes in MColumn to update the index
 		registerTableEvent(IEventTopics.PO_AFTER_NEW, MColumn.Table_Name);
 		registerTableEvent(IEventTopics.PO_AFTER_CHANGE, MColumn.Table_Name);
 		registerTableEvent(IEventTopics.PO_AFTER_DELETE, MColumn.Table_Name);
@@ -79,6 +90,10 @@ public class TSearchIndexEventHandler extends AbstractEventHandler {
 		else 
 			OmnisearchHelper.updateDocument(OmnisearchAbstractFactory.TEXTSEARCH_INDEX, po, 
 					type.equals(IEventTopics.PO_AFTER_NEW));
+		
+		if (fkTableNames.contains(po.get_TableName())) {
+			OmnisearchHelper.updateParent(OmnisearchAbstractFactory.TEXTSEARCH_INDEX, po);
+		}
 	}
 
 }

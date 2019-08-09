@@ -25,6 +25,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -34,6 +35,7 @@ import org.compiere.model.MClient;
 import org.compiere.model.MColumn;
 import org.compiere.model.MTable;
 import org.compiere.model.PO;
+import org.compiere.model.Query;
 import org.compiere.util.DB;
 import org.compiere.util.Env;
 import org.osgi.service.component.annotations.Component;
@@ -560,5 +562,40 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 		DB.executeUpdateEx(updateQuery.toString(), 
 				new Object[] {Env.getAD_Client_ID(Env.getCtx()), po.get_ID(), po.get_Table_ID(), po.get_ID()}, 
 				trxName);
+	}
+
+	@Override
+	public void updateParent(PO po) {
+
+		//No identifier was modified -> don't do anything
+		if (!identifierChanged(po))
+			return;
+		
+		List<MColumn> fkColumns = getReferencedColumns(TextSearchValues.TS_INDEX_NAME, po.get_TableName());
+		for (MColumn fkColumn : fkColumns) {
+			List<PO> referencedPOs = new Query(Env.getCtx(),MTable.get(Env.getCtx(), fkColumn.getAD_Table_ID()), 
+					fkColumn.getColumnName() + "=?", po.get_TrxName())
+					.setParameters(po.get_ID())
+					.setOnlyActiveRecords(true)
+					.setClient_ID()
+					.list();
+		
+			ArrayList<Integer> columnIds = null;
+			for (PO refPO : referencedPOs) {
+				columnIds = getIndexedColumns(refPO.get_Table_ID(), TextSearchValues.TS_INDEX_NAME);
+				updateRecord(refPO, columnIds, po.get_TrxName());
+			}
+		}
+	}
+	
+	private boolean identifierChanged(PO po) {
+		String[] identifierColumns = MTable.get(Env.getCtx(), po.get_Table_ID()).getIdentifierColumns();
+
+		for (String columnName : identifierColumns) {
+			if (po.is_ValueChanged(columnName))
+				return true;
+		}
+		
+		return false;
 	}
 }
