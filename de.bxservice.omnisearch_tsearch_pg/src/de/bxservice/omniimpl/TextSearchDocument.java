@@ -33,6 +33,7 @@ import java.util.logging.Level;
 import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.MClient;
 import org.compiere.model.MColumn;
+import org.compiere.model.MRole;
 import org.compiere.model.MTable;
 import org.compiere.model.PO;
 import org.compiere.model.Query;
@@ -379,7 +380,8 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			sql.append("plainto_tsquery('" + query + "') ");
 
 		sql.append("AND AD_CLIENT_ID IN (0,?) ");
-
+		
+		MRole role = MRole.getDefault(Env.getCtx(), false);
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try
@@ -390,17 +392,25 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 
 			TextSearchResult result = null;
 			int i = 0;
-			while (rs.next())
-			{
+			while (rs.next()) {
+				int AD_Table_ID = rs.getInt(1);
+				int recordID = rs.getInt(2);
+				
+				int AD_Window_ID = Env.getZoomWindowID(AD_Table_ID, recordID);
+				
+				if (AD_Window_ID > 0 && role.getWindowAccess(AD_Window_ID) == null)
+					continue;
+				if (AD_Window_ID > 0 && !role.isRecordAccess(AD_Table_ID, recordID, true))
+					continue;
+				
 				result = new TextSearchResult();
-				result.setAD_Table_ID(rs.getInt(1));
-				result.setRecord_ID(rs.getInt(2));
+				result.setAD_Table_ID(AD_Table_ID);
+				result.setRecord_ID(recordID);
 				results.add(result);
 
 				if (i < 10) {
 					setHeadline(result, query);
 				}
-
 				i++;
 			}
 		}
