@@ -117,7 +117,7 @@ public class OmnisearchHelper {
 			String sql = "SELECT AD_COLUMN_ID FROM AD_COLUMN" + 
 					" WHERE AD_COLUMN." + indexColumnName + 
 					" = 'Y' AND AD_COLUMN.IsActive='Y' AND ColumnSQL IS NULL" + 
-					" AND AD_REFERENCE_ID IN (?,?,?,?,?,?,?,?,?,?)";
+					" AND AD_REFERENCE_ID IN (?,?,?,?,?,?,?,?,?,?,?)";
 			
 			//Bring the column ids from the FK
 			PreparedStatement pstmt = null;
@@ -134,6 +134,7 @@ public class OmnisearchHelper {
 				pstmt.setInt(8, DisplayType.Locator);
 				pstmt.setInt(9, DisplayType.PAttribute);
 				pstmt.setInt(10, DisplayType.Assignment);
+				pstmt.setInt(11, DisplayType.RadiogroupList);
 				rs = pstmt.executeQuery();
 
 				MColumn column = null;
