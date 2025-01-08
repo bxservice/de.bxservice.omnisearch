@@ -6,7 +6,7 @@ Bundle-SymbolicName: de.bxservice.omnisearchdp
 Bundle-Version: 12.0.0.qualifier
 Fragment-Host: org.adempiere.ui.zk
 Bundle-RequiredExecutionEnvironment: JavaSE-17
-Require-Bundle: org.adempiere.plugin.utils;bundle-version="12.0.0",
+Require-Bundle: org.adempiere.plugin.utils;bundle-version="11.0.0",
  de.bxservice.omnisearch;bundle-version="12.0.0"
 Export-Package: org.adempiere.webui.dashboard
 Bundle-ClassPath: zul/,

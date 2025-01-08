@@ -4,9 +4,9 @@ Bundle-Name: Omnisearch
 Bundle-SymbolicName: de.bxservice.omnisearch_tsearch_pg;singleton:=true
 Bundle-Version: 12.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-17
-Require-Bundle: org.adempiere.base;bundle-version="12.0.0",
- org.adempiere.plugin.utils;bundle-version="12.0.0",
- de.bxservice.omnisearch;bundle-version="12.0.0",
+Require-Bundle: org.adempiere.base;bundle-version="11.0.0",
+ org.adempiere.plugin.utils;bundle-version="11.0.0",
+ de.bxservice.omnisearch;bundle-version="11.0.0",
  org.osgi.service.event;bundle-version="1.4.1"
 Bundle-Activator: org.adempiere.plugin.utils.Incremental2PackActivator
 Service-Component: OSGI-INF/*.xml
