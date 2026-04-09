@@ -142,7 +142,9 @@ public class TextSearchDocument extends AbstractOmnisearchDocument {
 			insertQuery.append(selectQuery);
 
 			Object[] params = null;
-			if (Record_ID > 0)
+			if (Record_ID > 0 && Env.getAD_Client_ID(Env.getCtx()) != 0)
+				params = new Object[]{Env.getAD_Client_ID(Env.getCtx()), Record_ID};
+			else if (Record_ID > 0)
 				params = new Object[]{Record_ID};
 			else if (Env.getAD_Client_ID(Env.getCtx()) > 0)
 				params = new Object[]{Env.getAD_Client_ID(Env.getCtx())};
